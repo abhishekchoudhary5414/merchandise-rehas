@@ -1,0 +1,60 @@
+.dashboardWrapper {
+  min-height: 100vh;
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  padding-bottom: 5rem;
+}
+
+.mainContent {
+  max-width: 80rem;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+}
+
+/* Tab Navigation */
+.tabsBar {
+  display: flex;
+  gap: 0.5rem;
+  border-bottom: 2px solid var(--border);
+  margin-bottom: 2rem;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.tabButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+  border-radius: 0.5rem 0.5rem 0 0;
+}
+
+.tabButton:hover {
+  color: var(--primary);
+  background: var(--surface);
+}
+
+.activeTab {
+  color: var(--primary);
+  border-bottom: 2px solid var(--primary);
+  background: var(--surface);
+}
+
+.tabBadge {
+  font-size: 0.75rem;
+  background: var(--primary-light);
+  color: var(--primary);
+  padding: 0.1rem 0.5rem;
+  border-radius: 9999px;
+}

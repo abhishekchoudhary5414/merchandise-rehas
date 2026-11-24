@@ -1,0 +1,11 @@
+.stickyHeaderGroup {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  z-index: 100;
+  box-shadow: 0 4px 20px rgba(86, 0, 103, 0.08);
+  transform: translateZ(0); /* Hardware accelerated */
+  will-change: transform;
+}

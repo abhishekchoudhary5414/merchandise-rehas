@@ -1,26 +1,130 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --primary: #560067;
+  --primary-dark: #390044;
+  --primary-light: #F2E8F5;
+  --secondary: #D8B878;
+  --secondary-light: #F7EBD4;
+  --background: #F7F1E8;
+  --surface: #FFFFFF;
+  --text-primary: #292329;
+  --text-secondary: #777078;
+  --border: #E9E2E9;
+  --success: #218838;
+  --warning: #E6A23C;
+  --danger: #DC3545;
+  --info: #2878C7;
+
+  --sidebar-width: 270px;
+  --sidebar-collapsed-width: 78px;
+  --header-height: 70px;
+
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 22px;
+
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 8px 24px rgba(86, 0, 103, 0.06);
+  --shadow-lg: 0 16px 40px rgba(86, 0, 103, 0.1);
+
+  --container-width: 1600px;
+
+  --font-serif: "Playfair Display", Georgia, "Times New Roman", serif;
+  --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+*, *::before, *::after {
+  box-sizing: border-box;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html, body {
+  background-color: #F7F1E8;
+  background-color: var(--background);
+  color: #292329;
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+  width: 100%;
+  overflow-x: clip;
+  -webkit-font-smoothing: antialiased;
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+img, picture, video, canvas, svg {
+  display: block;
+  max-width: 100%;
+}
+
+input, button, textarea, select {
+  font: inherit;
+}
+
+/* Global utility classes matching brand tokens */
+.brand-btn-primary {
+  background: #560067;
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  color: #ffffff !important;
+  padding: 12px 24px;
+  border-radius: 14px;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  text-decoration: none;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 14px rgba(86, 0, 103, 0.25);
+  transition: all 0.25s ease;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.brand-btn-primary:hover {
+  box-shadow: 0 6px 20px rgba(86, 0, 103, 0.38);
+  transform: translateY(-1px);
+}
+
+.brand-btn-secondary {
+  background: #ffffff;
+  background: var(--surface);
+  color: #560067;
+  color: var(--primary);
+  border: 1.5px solid #E9E2E9;
+  border: 1.5px solid var(--border);
+  padding: 12px 24px;
+  border-radius: 14px;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.brand-btn-secondary:hover {
+  border-color: #D8B878;
+  border-color: var(--secondary);
+  background: #F2E8F5;
+  background: var(--primary-light);
+}
+
+.brand-card {
+  background: #ffffff;
+  background: var(--surface);
+  border: 1px solid #E9E2E9;
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  border-radius: var(--radius-lg);
+  box-shadow: 0 4px 20px rgba(86, 0, 103, 0.05);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.brand-card:hover {
+  box-shadow: 0 8px 30px rgba(86, 0, 103, 0.12);
+  transform: translateY(-2px);
 }
