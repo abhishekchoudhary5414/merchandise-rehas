@@ -101,8 +101,12 @@ export async function POST(req: Request) {
       const coupon = await prisma.coupon.findUnique({
         where: { code: couponCode.toUpperCase() },
       });
-      if (coupon && coupon.isActive && subtotal >= coupon.minOrderValue) {
+      const notExpired = !coupon?.expiresAt || coupon.expiresAt > new Date();
+      if (coupon && coupon.isActive && notExpired && subtotal >= coupon.minOrderValue) {
         discountAmount = Math.round((subtotal * coupon.discountPct) / 100);
+        if (coupon.maxDiscount && discountAmount > coupon.maxDiscount) {
+          discountAmount = Math.round(coupon.maxDiscount);
+        }
       }
     }
 

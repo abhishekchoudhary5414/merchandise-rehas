@@ -124,7 +124,7 @@ export default function Navbar({ cartCount = 0 }: NavbarProps) {
           <Link href="/shop" className={styles.iconBtn} aria-label="Search bracelets">
             <Search size={20} />
           </Link>
-          <Link href="/login" className={styles.iconBtn} aria-label="Account">
+          <Link href="/account" className={styles.iconBtn} aria-label="Account">
             <User size={20} />
           </Link>
           <Link href="/wishlist" className={styles.iconBtn} aria-label="Wishlist">
@@ -133,9 +133,6 @@ export default function Navbar({ cartCount = 0 }: NavbarProps) {
           <Link href="/cart" className={styles.cartBtn} aria-label="Shopping Cart">
             <ShoppingBag size={20} />
             <span className={styles.cartBadge}>{liveCartCount}</span>
-          </Link>
-          <Link href="/admin" className={styles.adminBadge}>
-            Admin
           </Link>
         </div>
       </div>
@@ -208,40 +205,39 @@ export default function Navbar({ cartCount = 0 }: NavbarProps) {
             </Link>
           </nav>
 
-          {/* Special Admin & Account Quick Links */}
-          <div className={styles.drawerSectionDivider} />
+          {/* Divider Line */}
+          <div className={styles.drawerDivider} />
 
-          <div className={styles.drawerQuickActions}>
-            <Link href="/cart" onClick={() => setMobileMenuOpen(false)} className={styles.drawerActionBtn}>
-              <ShoppingBag size={18} />
-              <span>Cart ({cartCount})</span>
+          {/* Drawer Actions: Account, Cart, Wishlist */}
+          <div className={styles.drawerActions}>
+            <Link href="/account" onClick={() => setMobileMenuOpen(false)} className={styles.drawerActionBtn}>
+              <User size={20} />
+              <span>Account</span>
             </Link>
             <Link href="/wishlist" onClick={() => setMobileMenuOpen(false)} className={styles.drawerActionBtn}>
-              <Heart size={18} />
+              <Heart size={20} />
               <span>Wishlist</span>
             </Link>
-            <Link href="/admin" onClick={() => setMobileMenuOpen(false)} className={styles.drawerAdminLink}>
-              <span>Admin Management Portal</span>
-              <ChevronRight size={16} />
+            <Link href="/cart" onClick={() => setMobileMenuOpen(false)} className={styles.drawerActionBtn}>
+              <ShoppingBag size={20} />
+              <span>Cart ({liveCartCount})</span>
             </Link>
           </div>
-        </div>
 
-        {/* Drawer Footer with Contact Information from JSON */}
-        <div className={styles.drawerFooter}>
-          <div className={styles.drawerTrustBanner}>
-            <ShieldCheck size={16} className={styles.drawerTrustIcon} />
-            <span>Govt. Lab Certified Gemstones</span>
-          </div>
-          <div className={styles.drawerContactList}>
-            <a href={`tel:${siteConfig.contact.phone.replace(/[^0-9+]/g, '')}`} className={styles.drawerContactItem}>
-              <Phone size={14} />
-              <span>{siteConfig.contact.phone}</span>
-            </a>
-            <a href={`mailto:${siteConfig.contact.email}`} className={styles.drawerContactItem}>
-              <Mail size={14} />
-              <span>{siteConfig.contact.email}</span>
-            </a>
+          {/* Support Links */}
+          <div className={styles.supportLinks}>
+            <Link href="tel:+1234567890" className={styles.supportLink} onClick={() => setMobileMenuOpen(false)}>
+              <Phone size={18} />
+              <span>+1 (234) 567-890</span>
+            </Link>
+            <Link href="mailto:support@example.com" className={styles.supportLink} onClick={() => setMobileMenuOpen(false)}>
+              <Mail size={18} />
+              <span>support@example.com</span>
+            </Link>
+            <Link href="/terms" className={styles.supportLink} onClick={() => setMobileMenuOpen(false)}>
+              <ShieldCheck size={18} />
+              <span>Terms of Service</span>
+            </Link>
           </div>
         </div>
       </aside>

@@ -120,6 +120,47 @@ export async function sendOrderConfirmationEmail({
   }
 }
 
+export async function sendOrderStatusEmail({
+  to,
+  customerName,
+  orderNumber,
+  status,
+  trackingNumber,
+}: {
+  to: string;
+  customerName: string;
+  orderNumber: string;
+  status: string;
+  trackingNumber?: string | null;
+}) {
+  const transporter = createTransporter();
+  const statusLabel = status.replaceAll('_', ' ');
+  const html = `
+    <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;max-width:600px;margin:0 auto;border:1px solid #e9e2e9;border-radius:14px;overflow:hidden;color:#292329">
+      <div style="background:${PRIMARY_COLOR};padding:26px 20px;text-align:center;color:#fff"><h1 style="margin:0;font-family:Georgia,serif">REHAS</h1><p style="margin:6px 0 0;color:${GOLD_COLOR};font-size:12px;text-transform:uppercase;letter-spacing:2px">Sacred Merchandise</p></div>
+      <div style="padding:28px 24px"><h2 style="color:${PRIMARY_COLOR};margin-top:0">Delivery update for ${customerName}</h2><p>Your order <strong#${orderNumber}</strong> is now:</p><div style="background:#F7F1E8;border-radius:10px;padding:16px;text-align:center"><strong style="color:${PRIMARY_COLOR};font-size:18px">${statusLabel}</strong></div>${trackingNumber ? `<p style="margin-top:18px"><strong>Tracking ID:</strong> ${trackingNumber}</p>` : ''}<p style="font-size:13px;color:#777078">Track your order anytime from your REHAS account or the order tracking page.</p></div>
+      <div style="background:#fdfaf6;padding:14px;text-align:center;font-size:12px;color:#777078;border-top:1px solid #e9e2e9">© ${new Date().getFullYear()} REHAS Sacred Merchandise</div>
+    </div>`;
+
+  if (!transporter) {
+    console.log(`[Email Mock Sent] Order ${orderNumber}: ${statusLabel} to ${to}`);
+    return true;
+  }
+
+  try {
+    await transporter.sendMail({
+      from: `"${BRAND_NAME}" <${FROM_EMAIL}>`,
+      to,
+      subject: `Order #${orderNumber} – ${statusLabel}`,
+      html,
+    });
+    return true;
+  } catch (error) {
+    console.error('Status email error:', error);
+    return false;
+  }
+}
+
 export async function sendContactNotification({
   name,
   email,

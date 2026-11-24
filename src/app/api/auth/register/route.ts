@@ -2,14 +2,22 @@ import { NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { prisma } from '@/lib/prisma';
+import { verifyRegistrationOTP } from '@/lib/registration-otp';
 
 export async function POST(req: Request) {
   try {
-    const { name, email, phone, password } = await req.json();
+    const { name, email, phone, password, otpCode } = await req.json();
 
     if (!name || !email || !password) {
       return NextResponse.json(
         { error: 'Name, email, and password are required.' },
+        { status: 400 }
+      );
+    }
+
+    if (!otpCode || String(otpCode).trim().length !== 6) {
+      return NextResponse.json(
+        { error: 'Please enter the 6-digit OTP code sent to your email.' },
         { status: 400 }
       );
     }
@@ -22,6 +30,13 @@ export async function POST(req: Request) {
     }
 
     const cleanEmail = email.trim().toLowerCase();
+
+    // Verify OTP first
+    await verifyRegistrationOTP({
+      email: cleanEmail,
+      otpCode: String(otpCode).trim(),
+    });
+
     const existing = await prisma.user.findUnique({ where: { email: cleanEmail } });
     if (existing) {
       return NextResponse.json(
@@ -78,6 +93,6 @@ export async function POST(req: Request) {
 
     return response;
   } catch (error: any) {
-    return NextResponse.json({ error: error.message || 'Registration failed' }, { status: 500 });
+    return NextResponse.json({ error: error.message || 'Registration failed' }, { status: 400 });
   }
 }

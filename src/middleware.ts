@@ -24,6 +24,16 @@ export function middleware(request: NextRequest) {
     }
   }
 
+  // Protect /account and /track-order routes
+  if (pathname === '/account' || pathname === '/track-order') {
+    const customerToken = request.cookies.get('customer_token')?.value;
+    if (!customerToken) {
+      const loginUrl = new URL('/login', request.url);
+      loginUrl.searchParams.set('redirect', `${pathname}${request.nextUrl.search}`);
+      return NextResponse.redirect(loginUrl);
+    }
+  }
+
   // If already logged in and visiting /admin/login, redirect to /admin/dashboard
   if (pathname === '/admin/login') {
     const adminToken = request.cookies.get('admin_token')?.value;
@@ -36,5 +46,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/admin/:path*'],
+  matcher: ['/admin/:path*', '/account', '/account/:path*', '/track-order', '/track-order/:path*'],
 };

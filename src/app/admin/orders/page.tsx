@@ -23,6 +23,22 @@ export default function OrdersPage() {
     loadOrders();
   }, []);
 
+  async function handleStatusChange(orderId: string, shippingStatus: string) {
+    try {
+      const res = await fetch('/api/admin/orders', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId, shippingStatus }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Status update failed');
+      setOrders((current) => current.map((order) => order.id === orderId ? { ...order, shippingStatus } : order));
+      setPopup({ open: true, type: 'success', title: 'Delivery Status Updated', message: `${data.message}. Customer email notification sent.` });
+    } catch (error: any) {
+      setPopup({ open: true, type: 'error', title: 'Status Update Failed', message: error.message || 'Could not update status' });
+    }
+  }
+
   function handleRefund(orderId: string, amount: number) {
     setPopup({
       open: true,
@@ -93,7 +109,20 @@ export default function OrdersPage() {
                         {o.paymentMethod} · {o.paymentStatus}
                       </span>
                     </td>
-                    <td>{o.shippingStatus}</td>
+                    <td>
+                      <select
+                        value={o.shippingStatus}
+                        onChange={(event) => handleStatusChange(o.id, event.target.value)}
+                        style={{ minWidth: '150px', border: '1px solid var(--border)', borderRadius: '6px', background: '#fff', color: 'var(--text-primary)', padding: '6px 8px', fontSize: '0.75rem', cursor: 'pointer' }}
+                      >
+                        <option value="PROCESSING">Processing</option>
+                        <option value="PACKED">Packed</option>
+                        <option value="SHIPPED">Shipped</option>
+                        <option value="OUT_FOR_DELIVERY">Out for delivery</option>
+                        <option value="DELIVERED">Delivered</option>
+                        <option value="REFUNDED">Refunded</option>
+                      </select>
+                    </td>
                     <td>
                       {o.paymentStatus === 'PAID' && (
                         <button

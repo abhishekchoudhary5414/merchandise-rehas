@@ -39,7 +39,7 @@ export default function ShippingPolicyPage() {
             <p>
               • <strong>Free Shipping:</strong> On all orders above ₹999.<br />
               • <strong>Standard Flat Rate:</strong> ₹79 for orders under ₹999.<br />
-              • <strong>Cash on Delivery (COD):</strong> An optional fee of ₹49 applies to cover courier cash handling.
+              • <strong>100% Secured Online Payments:</strong> Instant verification via UPI, Cards, and NetBanking with zero transaction charges.
             </p>
           </section>
 

@@ -55,18 +55,28 @@ export default function ProductBuySection({ product }: ProductBuySectionProps) {
       tested: true,
       valid: true,
       serviceable: true,
-      message: `Delivery available at PIN ${pinCode}! Estimated dispatch in 24 hrs via Shiprocket. Cash on Delivery & Razorpay supported.`,
+      message: `Delivery available at PIN ${pinCode}! Estimated dispatch in 24 hrs via Shiprocket. 100% Secured Online Payments supported.`,
     });
   }
 
   function handleBuyNow() {
-    const query = new URLSearchParams({
-      productId: product.id,
-      quantity: quantity.toString(),
-      wristSize: selectedSize,
-      pinCode: pinCode.trim(),
-    });
-    router.push(`/checkout?${query.toString()}`);
+    try {
+      const checkoutItem = {
+        productId: product.id,
+        name: product.name,
+        wristSize: selectedSize,
+        unitPrice: product.price,
+        quantity,
+        pinCode: pinCode.trim(),
+      };
+      localStorage.setItem(
+        'rehas_checkout_session',
+        JSON.stringify({ source: 'buy_now', items: [checkoutItem], pinCode: pinCode.trim() })
+      );
+    } catch {
+      // Ignore
+    }
+    router.push('/checkout');
   }
 
   return (

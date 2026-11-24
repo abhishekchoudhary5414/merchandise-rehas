@@ -182,14 +182,27 @@ export default function ProductDetailClient({
   }
 
   function handleBuyNow() {
-    const query = new URLSearchParams({
-      productId: product.id,
-      quantity: quantity.toString(),
-      ...(selectedSize ? { wristSize: selectedSize } : {}),
-      tier: selectedTier,
-      ritual: includeRitual ? '1' : '0',
-    });
-    router.push(`/checkout?${query.toString()}`);
+    try {
+      const checkoutItem = {
+        productId: product.id,
+        name: product.name,
+        slug: product.slug,
+        sku: product.sku,
+        image: activeMedia?.url || product.primaryImage,
+        tier: selectedTier,
+        ritual: includeRitual,
+        wristSize: selectedSize,
+        unitPrice: finalUnitPrice,
+        quantity,
+      };
+      localStorage.setItem(
+        'rehas_checkout_session',
+        JSON.stringify({ source: 'buy_now', items: [checkoutItem] })
+      );
+    } catch {
+      // Ignore storage errors
+    }
+    router.push('/checkout');
   }
 
   const trustBadges: string[] = Array.isArray(sc.trustBadges) ? sc.trustBadges : [];

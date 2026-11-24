@@ -82,6 +82,8 @@ export default function Footer() {
         <div className={styles.bottomBar}>
           <p>© {new Date().getFullYear()} {siteConfig.brand.name} {siteConfig.brand.subName}. All rights reserved. Prices in INR (₹) inclusive of GST.</p>
           <div className={styles.badges}>
+            <Link href="/admin" style={{ color: 'inherit', textDecoration: 'none', opacity: 0.85 }}>Store Admin</Link>
+            <span>•</span>
             <span>Razorpay 256-Bit SSL</span>
             <span>•</span>
             <span>Shiprocket Pan-India</span>

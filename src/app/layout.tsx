@@ -4,7 +4,7 @@ import './globals.css';
 
 export const metadata: Metadata = {
   title: 'REHAS Sacred Merchandise | Vedic Astrology & Crystal Energy Bracelets',
-  description: 'Consecrated natural crystal bracelets tuned to your Kundli, Mulank, and Chakras. Free delivery across India and Cash on Delivery.',
+  description: 'Consecrated natural crystal bracelets tuned to your Kundli, Mulank, and Chakras. Free express doorstep delivery across India with 100% secured payments.',
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'),
 };
 

@@ -8,6 +8,7 @@ import AnnouncementBar from '@/components/announcement-bar/AnnouncementBar';
 import Navbar from '@/components/navbar/Navbar';
 import Footer from '@/components/footer/Footer';
 import WhatsAppFloat from '@/components/whatsapp/WhatsAppFloat';
+
 import { formatINR } from '@/lib/india-localization';
 import styles from './CartPage.module.css';
 
@@ -15,6 +16,9 @@ export default function CartPage() {
   const router = useRouter();
   const [items, setItems] = useState<any[]>([]);
   const [loaded, setLoaded] = useState(false);
+  const [user, setUser] = useState<any>(null);
+  const [authChecked, setAuthChecked] = useState(false);
+
   const [shippingConfig, setShippingConfig] = useState({
     freeShippingThreshold: 999,
     flatRate: 79,
@@ -41,6 +45,16 @@ export default function CartPage() {
         }
       })
       .catch(() => {});
+
+    fetch('/api/auth/me')
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.user) setUser(d.user);
+      })
+      .catch(() => {})
+      .finally(() => setAuthChecked(true));
+
+
   }, []);
 
   function syncCart(next: any[]) {
@@ -87,17 +101,43 @@ export default function CartPage() {
       : shippingConfig.flatRate;
   const totalPayable = subtotal + shippingFee;
 
-  function handleCheckout() {
+  function saveCheckoutAndNavigate() {
+    try {
+      localStorage.setItem(
+        'rehas_checkout_session',
+        JSON.stringify({ source: 'cart', items })
+      );
+    } catch {
+      // Ignore
+    }
+    router.push('/checkout');
+  }
+
+  async function handleCheckout() {
     if (items.length === 0) return;
-    const first = items[0];
-    const query = new URLSearchParams({
-      productId: first.productId,
-      quantity: String(first.quantity || 1),
-      ...(first.wristSize ? { wristSize: first.wristSize } : {}),
-      ...(first.tier ? { tier: first.tier } : {}),
-      ritual: first.ritual ? '1' : '0',
-    });
-    router.push(`/checkout?${query.toString()}`);
+
+    let currentUser = user;
+    if (!authChecked) {
+      try {
+        const res = await fetch('/api/auth/me');
+        const data = await res.json();
+        currentUser = data.user || null;
+        setUser(currentUser);
+      } catch {
+        currentUser = null;
+      }
+    }
+
+    if (!currentUser) {
+      // Save cart session then redirect to login with return URL
+      try {
+        localStorage.setItem('rehas_checkout_session', JSON.stringify({ source: 'cart', items }));
+      } catch { /* ignore */ }
+      router.push('/login?redirect=/checkout');
+      return;
+    }
+
+    saveCheckoutAndNavigate();
   }
 
   return (
@@ -229,7 +269,7 @@ export default function CartPage() {
               </div>
 
               <button type="button" onClick={handleCheckout} className={styles.checkoutBtn}>
-                <span>Proceed to Checkout</span>
+                <span>{user ? 'Proceed to Checkout' : 'Login to Checkout'}</span>
                 <ArrowRight size={18} />
               </button>
             </aside>
@@ -239,6 +279,7 @@ export default function CartPage() {
 
       <Footer />
       <WhatsAppFloat />
+
     </div>
   );
 }

@@ -1,70 +1,78 @@
 'use client';
 
-import React, { Suspense } from 'react';
+import React, { Suspense, useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { CheckCircle2, Package, ArrowRight, Truck } from 'lucide-react';
+import { CheckCircle2, Package, ArrowRight, Truck, ShieldCheck, Clock3, MapPin } from 'lucide-react';
+import AnnouncementBar from '@/components/announcement-bar/AnnouncementBar';
+import Navbar from '@/components/navbar/Navbar';
+import Footer from '@/components/footer/Footer';
+import WhatsAppFloat from '@/components/whatsapp/WhatsAppFloat';
+import styles from './OrderConfirmed.module.css';
 
 function OrderConfirmedContent() {
   const searchParams = useSearchParams();
-  const orderNumber = searchParams.get('orderNumber') || 'AB-IN-104928';
+  const orderNumber = searchParams.get('orderNumber') || '';
   const isCod = searchParams.get('cod') === 'true';
+  const [order, setOrder] = useState<any>(null);
+
+  useEffect(() => {
+    if (!orderNumber) return;
+    fetch(`/api/orders/status?orderNumber=${encodeURIComponent(orderNumber)}`)
+      .then((res) => res.json())
+      .then((data) => { if (data.order) setOrder(data.order); })
+      .catch(() => undefined);
+  }, [orderNumber]);
+
+  const status = order?.shippingStatus || 'PROCESSING';
+  const trackingNumber = order?.trackingNumber || 'Available after dispatch';
 
   return (
-    <div className="max-w-2xl mx-auto px-6 py-16 text-center">
-      <div className="w-16 h-16 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm">
-        <CheckCircle2 className="w-10 h-10" />
-      </div>
+    <div className={styles.page}>
+      <AnnouncementBar /><Navbar />
+      <main className={styles.main}>
+        <div className={styles.confirmationGrid}>
+          <section className={styles.heroCard}>
+            <div className={styles.iconRing}><CheckCircle2 size={38} strokeWidth={2.2} /></div>
+            <span className={styles.badge}><ShieldCheck size={13} /> {isCod || order?.paymentMethod === 'COD' ? 'Cash on Delivery' : 'Payment confirmed'}</span>
+            <h1>Thank you for your order!</h1>
+            <p className={styles.intro}>Your sacred merchandise is now confirmed and will be carefully prepared for dispatch. We will keep you updated at every delivery milestone.</p>
+            <div className={styles.orderMeta}>
+              <div className={styles.metaItem}><span>Order number</span><strong>#{orderNumber}</strong></div>
+              <div className={styles.metaItem}><span>Estimated delivery</span><strong>3–5 business days</strong></div>
+            </div>
+            <div className={styles.actions}>
+              <Link href={`/track-order?orderNumber=${orderNumber}`} className={styles.primaryAction}><Truck size={17} /> Track your order</Link>
+              <Link href="/shop" className={styles.secondaryAction}>Continue shopping <ArrowRight size={16} /></Link>
+            </div>
+          </section>
 
-      <div className="inline-block px-3 py-1 bg-amber-100 text-amber-900 rounded-full text-xs font-semibold mb-3">
-        {isCod ? 'Order Placed (Cash on Delivery)' : 'Payment Verified (Razorpay)'}
-      </div>
+          <aside className={styles.summaryCard}>
+            <div className={styles.summaryTitle}><Truck size={20} /><h2>Delivery summary</h2></div>
+            <div className={styles.statusBlock}><span className={styles.statusLabel}>Current status</span><div className={styles.statusValue}><span className={styles.statusDot} />{status.replaceAll('_', ' ')}</div></div>
+            <div className={styles.summaryRows}>
+              <div className={styles.summaryRow}><span>Courier</span><strong>{order?.trackingCourier || 'REHAS Express'}</strong></div>
+              <div className={styles.summaryRow}><span>Tracking ID</span><strong>{trackingNumber}</strong></div>
+              <div className={styles.summaryRow}><span>Payment</span><strong>{order?.paymentStatus || (isCod ? 'COD' : 'Verified')}</strong></div>
+            </div>
+          </aside>
 
-      <h1 className="text-3xl font-serif font-bold text-amber-950 mb-3">
-        Thank You for Your Order!
-      </h1>
-
-      <p className="text-stone-600 text-sm mb-6">
-        Your order <strong>#{orderNumber}</strong> has been successfully placed. We have dispatched an SMS and email notification with your tracking details.
-      </p>
-
-      <div className="bg-white p-6 rounded-2xl border border-stone-200 shadow-sm text-left text-xs space-y-3 mb-8">
-        <div className="flex items-center gap-2 font-semibold text-stone-900 text-sm">
-          <Truck className="w-4 h-4 text-amber-800" /> Dispatch & Delivery Status
+          <section className={styles.timelineCard}>
+            <div className={styles.timelineTitle}><h2>Order journey</h2><span>We’ll notify you by email for every update</span></div>
+            <div className={styles.timeline}>
+              <div className={styles.step}><div className={styles.stepIcon}><CheckCircle2 size={15} /></div><strong>Confirmed</strong><span>Order received</span></div>
+              <div className={styles.step}><div className={styles.stepIcon}><Package size={15} /></div><strong>Processing</strong><span>Preparing safely</span></div>
+              <div className={styles.step}><div className={styles.stepIcon}><Truck size={15} /></div><strong>Shipped</strong><span>On the way</span></div>
+              <div className={styles.step}><div className={styles.stepIcon}><MapPin size={15} /></div><strong>Delivered</strong><span>At your address</span></div>
+            </div>
+          </section>
         </div>
-        <p className="text-stone-600">
-          Your handcrafted bracelet will be dispatched from our Jaipur atelier via <strong>Shiprocket Express</strong>. Delivery is expected within 3-5 business days across India.
-        </p>
-        <div className="pt-2 border-t border-stone-100 flex justify-between text-stone-500">
-          <span>Tracking ID:</span>
-          <span className="font-mono text-stone-900 font-semibold">IND{Math.floor(100000000 + Math.random() * 900000000)}</span>
-        </div>
-      </div>
-
-      <div className="flex flex-wrap items-center justify-center gap-4">
-        <Link
-          href={`/track-order?orderNumber=${orderNumber}`}
-          className="px-6 py-3 bg-amber-900 hover:bg-amber-950 text-white font-medium rounded-xl text-sm transition"
-        >
-          Track Courier Status
-        </Link>
-        <Link
-          href="/"
-          className="px-6 py-3 border border-stone-300 hover:bg-stone-100 text-stone-700 font-medium rounded-xl text-sm transition inline-flex items-center gap-1.5"
-        >
-          Continue Shopping <ArrowRight className="w-4 h-4" />
-        </Link>
-      </div>
+      </main>
+      <Footer /><WhatsAppFloat />
     </div>
   );
 }
 
 export default function OrderConfirmedPage() {
-  return (
-    <div className="min-h-screen bg-[#FDFBF7] text-stone-800">
-      <Suspense fallback={<div className="p-12 text-center text-stone-500 text-sm">Loading confirmation...</div>}>
-        <OrderConfirmedContent />
-      </Suspense>
-    </div>
-  );
+  return <Suspense fallback={<div className={styles.page} style={{ minHeight: '100vh' }} />}><OrderConfirmedContent /></Suspense>;
 }

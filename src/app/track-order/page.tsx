@@ -1,137 +1,195 @@
 'use client';
 
-import React, { useState, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+import React, { Suspense, useEffect, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Search, Truck, CheckCircle2, Clock, MapPin } from 'lucide-react';
+import { ArrowLeft, Search, Truck, CheckCircle2, Package, MapPin, ShieldCheck, Clock3 } from 'lucide-react';
+import AnnouncementBar from '@/components/announcement-bar/AnnouncementBar';
+import Navbar from '@/components/navbar/Navbar';
+import Footer from '@/components/footer/Footer';
+import WhatsAppFloat from '@/components/whatsapp/WhatsAppFloat';
+import styles from './TrackOrder.module.css';
+
+const timeline = [
+	{ status: 'PROCESSING', title: 'Confirmed', description: 'Order received', icon: CheckCircle2 },
+	{ status: 'PACKED', title: 'Packed', description: 'Prepared safely', icon: Package },
+	{ status: 'SHIPPED', title: 'Shipped', description: 'Courier received', icon: Truck },
+	{ status: 'DELIVERED', title: 'Delivered', description: 'Order delivered', icon: MapPin },
+];
 
 function TrackOrderContent() {
-  const searchParams = useSearchParams();
-  const initialOrder = searchParams.get('orderNumber') || '';
-  const [orderQuery, setOrderQuery] = useState(initialOrder);
-  const [trackingData, setTrackingData] = useState<{
-    orderNumber: string;
-    courier: string;
-    trackingId: string;
-    status: string;
-    estimatedDelivery: string;
-  } | null>(initialOrder ? {
-    orderNumber: initialOrder,
-    courier: 'Shiprocket Express',
-    trackingId: 'IND849204918',
-    status: 'In Transit',
-    estimatedDelivery: 'Nov 27, 2026',
-  } : null);
+	const router = useRouter();
+	const searchParams = useSearchParams();
+	const initialOrder = searchParams.get('orderNumber') || '';
+	const [orderQuery, setOrderQuery] = useState(initialOrder);
+	const [order, setOrder] = useState<any>(null);
+	const [loading, setLoading] = useState(Boolean(initialOrder));
+	const [error, setError] = useState('');
 
-  function handleSearch(e: React.FormEvent) {
-    e.preventDefault();
-    if (!orderQuery.trim()) return;
+	async function loadOrder(orderNumber: string) {
+		if (!orderNumber.trim()) return;
+		setLoading(true);
+		setError('');
+		setOrder(null);
+		try {
+			const res = await fetch(`/api/orders/status?orderNumber=${encodeURIComponent(orderNumber.trim())}`);
+			const data = await res.json();
+			if (res.status === 401) {
+				router.replace(`/login?redirect=/track-order?orderNumber=${encodeURIComponent(orderNumber.trim())}`);
+				return;
+			}
+			if (!res.ok) throw new Error(data.error || 'Unable to find this order');
+			setOrder(data.order);
+		} catch (err: any) {
+			setError(err.message || 'Unable to find this order');
+		} finally {
+			setLoading(false);
+		}
+	}
 
-    setTrackingData({
-      orderNumber: orderQuery.trim(),
-      courier: 'Shiprocket Air Express',
-      trackingId: `IND${Math.floor(100000000 + Math.random() * 900000000)}`,
-      status: 'Shipped - In Transit',
-      estimatedDelivery: '3 - 4 Business Days',
-    });
-  }
+	useEffect(() => { if (initialOrder) loadOrder(initialOrder); }, [initialOrder]);
 
-  return (
-    <div className="max-w-3xl mx-auto px-6 py-12">
-      <Link href="/" className="inline-flex items-center gap-1 text-sm text-stone-500 hover:text-stone-900 mb-6">
-        <ArrowLeft className="w-4 h-4" /> Back to Store
-      </Link>
+	function handleSearch(e: React.FormEvent) {
+		e.preventDefault();
+		if (!orderQuery.trim()) return;
+		router.push(`/track-order?orderNumber=${encodeURIComponent(orderQuery.trim())}`);
+	}
 
-      <h1 className="text-3xl font-serif font-bold text-amber-950 mb-2">
-        Track Your Indian Delivery
-      </h1>
-      <p className="text-sm text-stone-600 mb-8">
-        Enter your Order Number or Indian Mobile Number to view live courier status with our shipping partners.
-      </p>
+	const trackingStatus = order?.shippingStatus;
+	const statusIndex = trackingStatus === 'PACKED'
+		? 1
+		: trackingStatus === 'SHIPPED' || trackingStatus === 'OUT_FOR_DELIVERY'
+			? 2
+			: timeline.findIndex((step) => step.status === trackingStatus);
 
-      <form onSubmit={handleSearch} className="flex gap-2 mb-8">
-        <input
-          type="text"
-          placeholder="e.g. AB-IN-104928 or 9876543210"
-          value={orderQuery}
-          onChange={(e) => setOrderQuery(e.target.value)}
-          className="flex-1 px-4 py-3 bg-white border border-stone-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
-        />
-        <button
-          type="submit"
-          className="px-6 py-3 bg-amber-900 hover:bg-amber-950 text-white rounded-xl text-sm font-semibold transition flex items-center gap-2"
-        >
-          <Search className="w-4 h-4" /> Track
-        </button>
-      </form>
+	return (
+		<div className={styles.page}>
+			<AnnouncementBar />
+			<Navbar />
+			<main className={styles.main}>
+				<div className={styles.heading}>
+					<div className={styles.headingText}>
+						<p>Courier tracking</p>
+						<h1>Track your order</h1>
+					</div>
+					<Link href="/account" className={styles.back}>
+						<ArrowLeft size={15} />
+						<span>My account</span>
+					</Link>
+				</div>
 
-      {trackingData && (
-        <div className="bg-white p-6 rounded-2xl border border-stone-200 shadow-sm space-y-6">
-          <div className="flex flex-wrap items-center justify-between border-b border-stone-100 pb-4 gap-2">
-            <div>
-              <div className="text-xs text-stone-400 font-mono">ORDER #{trackingData.orderNumber}</div>
-              <div className="text-base font-bold text-stone-900 mt-0.5">{trackingData.courier}</div>
-            </div>
-            <div className="text-right">
-              <span className="px-3 py-1 bg-amber-100 text-amber-900 rounded-full text-xs font-semibold">
-                {trackingData.status}
-              </span>
-              <div className="text-xs text-stone-500 mt-1">Expected: {trackingData.estimatedDelivery}</div>
-            </div>
-          </div>
+				<form className={styles.searchCard} onSubmit={handleSearch}>
+					<label htmlFor="tracking-order">Order number</label>
+					<div className={styles.searchRow}>
+						<input
+							id="tracking-order"
+							className={styles.searchInput}
+							value={orderQuery}
+							onChange={(e) => setOrderQuery(e.target.value)}
+							placeholder="Enter your REHAS order number"
+						/>
+						<button
+							className={styles.searchButton}
+							type="submit"
+							disabled={loading || !orderQuery.trim()}
+						>
+							<Search size={17} /> Track order
+						</button>
+					</div>
+				</form>
 
-          {/* Timeline */}
-          <div className="space-y-4 text-xs">
-            <div className="flex gap-3">
-              <div className="flex flex-col items-center">
-                <div className="w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center">
-                  <CheckCircle2 className="w-4 h-4" />
-                </div>
-                <div className="w-0.5 h-12 bg-emerald-500" />
-              </div>
-              <div>
-                <div className="font-semibold text-stone-900">Order Confirmed & Processed</div>
-                <div className="text-stone-500">Quality checked and packaged with authentic certificate</div>
-              </div>
-            </div>
+				{loading ? (
+					<div className={styles.empty}>
+						<Clock3 size={42} />
+						<h2>Looking up your order</h2>
+						<p>Please wait while we retrieve the latest courier status.</p>
+					</div>
+				) : error ? (
+					<div className={styles.error}>
+						<ShieldCheck size={42} />
+						<h2>Order not found</h2>
+						<p>{error}</p>
+						<button className={styles.retry} onClick={() => setOrderQuery(initialOrder)}>
+							Try again
+						</button>
+					</div>
+				) : order ? (
+					<div className={styles.contentGrid}>
+						<section className={styles.timelineCard}>
+							<div className={styles.cardHeader}>
+								<h2>Order journey</h2>
+								<span className={styles.statusBadge}>
+									{order.shippingStatus?.replaceAll('_', ' ')}
+								</span>
+							</div>
+							<div className={styles.timeline}>
+								{timeline.map((step, index) => {
+									const Icon = step.icon;
+									const stepIndex = index;
+									const complete = statusIndex < 0 ? index === 0 : stepIndex <= statusIndex;
+									const active = statusIndex < 0 ? index === 0 : stepIndex === statusIndex;
+									return (
+										<div
+											className={`${styles.step} ${complete ? styles.complete : ''} ${active ? styles.active : ''}`}
+											key={step.status}
+										>
+											<div className={styles.stepIcon}>
+												<Icon size={16} />
+											</div>
+											<strong>{step.title}</strong>
+											<span>{step.description}</span>
+										</div>
+									);
+								})}
+							</div>
+						</section>
 
-            <div className="flex gap-3">
-              <div className="flex flex-col items-center">
-                <div className="w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center">
-                  <Truck className="w-3.5 h-3.5" />
-                </div>
-                <div className="w-0.5 h-12 bg-amber-300" />
-              </div>
-              <div>
-                <div className="font-semibold text-stone-900">Dispatched from Jaipur Hub</div>
-                <div className="text-stone-500">Handed over to Shiprocket Express Courier · AWB: {trackingData.trackingId}</div>
-              </div>
-            </div>
+						<aside className={styles.summaryCard}>
+							<h2>Shipment details</h2>
+							<div className={styles.summaryRows}>
+								<div className={styles.summaryRow}>
+									<span>Order</span>
+									<strong>#{order.orderNumber}</strong>
+								</div>
+								<div className={styles.summaryRow}>
+									<span>Courier</span>
+									<strong>{order.trackingCourier || 'REHAS Express'}</strong>
+								</div>
+								<div className={styles.summaryRow}>
+									<span>Tracking ID</span>
+									<strong>{order.trackingNumber || 'Available after dispatch'}</strong>
+								</div>
+								<div className={styles.summaryRow}>
+									<span>Payment</span>
+									<strong>{order.paymentStatus}</strong>
+								</div>
+							</div>
+						</aside>
 
-            <div className="flex gap-3">
-              <div className="flex flex-col items-center">
-                <div className="w-6 h-6 rounded-full bg-stone-200 text-stone-500 flex items-center justify-center">
-                  <MapPin className="w-3.5 h-3.5" />
-                </div>
-              </div>
-              <div>
-                <div className="font-semibold text-stone-500">Out for Doorstep Delivery</div>
-                <div className="text-stone-400">Arriving at your local Indian delivery branch</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
+						<div className={styles.productCard}>
+							<div>
+								<Link href="/account">View all orders</Link>
+								<p>Updates are sent to your registered email address.</p>
+							</div>
+							<div className={styles.support}>
+								<ShieldCheck size={15} /> Secure order information
+							</div>
+						</div>
+					</div>
+				) : (
+					<div className={styles.empty}>
+						<Package size={42} />
+						<h2>Enter your order number</h2>
+						<p>Use the order number from your confirmation email or account order history.</p>
+					</div>
+				)}
+			</main>
+			<Footer />
+			<WhatsAppFloat />
+		</div>
+	);
 }
 
 export default function TrackOrderPage() {
-  return (
-    <div className="min-h-screen bg-[#FDFBF7] text-stone-800">
-      <Suspense fallback={<div className="p-12 text-center text-stone-500">Loading tracking portal...</div>}>
-        <TrackOrderContent />
-      </Suspense>
-    </div>
-  );
+	return <Suspense fallback={<div className={styles.page} />}><TrackOrderContent /></Suspense>;
 }

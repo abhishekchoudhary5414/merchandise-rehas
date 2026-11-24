@@ -51,6 +51,32 @@ export default function AdminDashboardMainPage() {
   const [orders, setOrders] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
+  const [coupons, setCoupons] = useState<any[]>([]);
+  const [loadingCoupons, setLoadingCoupons] = useState(false);
+  const [showCouponForm, setShowCouponForm] = useState(false);
+  const [savingCoupon, setSavingCoupon] = useState(false);
+  const [newCoupon, setNewCoupon] = useState({
+    code: '',
+    discountPct: '10',
+    minOrderValue: '499',
+    maxDiscount: '',
+    isActive: true,
+  });
+
+  async function fetchCouponsList() {
+    setLoadingCoupons(true);
+    try {
+      const res = await fetch('/api/admin/coupons');
+      if (res.ok) {
+        const data = await res.json();
+        if (data.coupons) setCoupons(data.coupons);
+      }
+    } catch {
+      // Ignore
+    } finally {
+      setLoadingCoupons(false);
+    }
+  }
   const [overviewData, setOverviewData] = useState<{
     kpis: {
       totalRevenue: number;
@@ -105,6 +131,9 @@ export default function AdminDashboardMainPage() {
     setIsSwitchingSection(true);
     setTimeout(() => setIsSwitchingSection(false), 180);
     recordActivity('Section Viewed', `Navigated to ${section} section.`, 'system');
+    if (section === 'coupons') {
+      fetchCouponsList();
+    }
   }
 
   function handleDeleteProduct(product: any) {
@@ -187,12 +216,13 @@ export default function AdminDashboardMainPage() {
   useEffect(() => {
     async function loadData() {
       try {
-        const [ordersRes, productsRes, shippingRes, overviewRes, categoriesRes] = await Promise.all([
+        const [ordersRes, productsRes, shippingRes, overviewRes, categoriesRes, couponsRes] = await Promise.all([
           fetch('/api/admin/orders').catch(() => null),
           fetch('/api/admin/products').catch(() => null),
           fetch('/api/admin/settings/shipping').catch(() => null),
           fetch('/api/admin/overview').catch(() => null),
           fetch('/api/admin/categories').catch(() => null),
+          fetch('/api/admin/coupons').catch(() => null),
         ]);
 
         if (ordersRes && ordersRes.ok) {
@@ -218,6 +248,11 @@ export default function AdminDashboardMainPage() {
         if (categoriesRes && categoriesRes.ok) {
           const data = await categoriesRes.json();
           if (data.categories) setCategories(data.categories);
+        }
+
+        if (couponsRes && couponsRes.ok) {
+          const data = await couponsRes.json();
+          if (data.coupons) setCoupons(data.coupons);
         }
       } catch (e) {
         console.error('Error fetching admin data:', e);
@@ -249,6 +284,66 @@ export default function AdminDashboardMainPage() {
           setPopup({ open: true, type: 'success', title: 'Refund Processed', message: data.message || 'Refund completed successfully.' });
         } catch (e: any) {
           setPopup({ open: true, type: 'error', title: 'Refund Failed', message: e.message || 'Could not process refund.' });
+        }
+      },
+    });
+  }
+
+  async function handleCreateCoupon(e: React.FormEvent) {
+    e.preventDefault();
+    setSavingCoupon(true);
+    try {
+      const res = await fetch('/api/admin/coupons', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newCoupon),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to create coupon');
+      setCoupons((prev) => [data.coupon, ...prev]);
+      setNewCoupon({ code: '', discountPct: '10', minOrderValue: '499', maxDiscount: '', isActive: true });
+      setShowCouponForm(false);
+      recordActivity('Coupon Created', `Created coupon "${data.coupon.code}" (${data.coupon.discountPct}% off).`, 'system');
+      setPopup({ open: true, type: 'success', title: 'Coupon Created', message: `Coupon "${data.coupon.code}" is now saved in Neon DB.` });
+    } catch (e: any) {
+      setPopup({ open: true, type: 'error', title: 'Coupon Error', message: e.message || 'Could not create coupon.' });
+    } finally {
+      setSavingCoupon(false);
+    }
+  }
+
+  async function handleToggleCoupon(coupon: any) {
+    try {
+      const res = await fetch(`/api/admin/coupons/${coupon.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isActive: !coupon.isActive }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to update coupon');
+      setCoupons((prev) => prev.map((c) => (c.id === coupon.id ? data.coupon : c)));
+      recordActivity('Coupon Updated', `${coupon.code} marked ${data.coupon.isActive ? 'Active' : 'Inactive'}.`, 'system');
+    } catch (e: any) {
+      setPopup({ open: true, type: 'error', title: 'Update Failed', message: e.message || 'Could not update coupon.' });
+    }
+  }
+
+  function handleDeleteCoupon(coupon: any) {
+    setPopup({
+      open: true,
+      type: 'confirm',
+      title: 'Delete Coupon',
+      message: `Are you sure you want to delete coupon "${coupon.code}"?`,
+      confirmLabel: 'Delete Coupon',
+      danger: true,
+      onConfirm: async () => {
+        try {
+          const res = await fetch(`/api/admin/coupons/${coupon.id}`, { method: 'DELETE' });
+          if (!res.ok) throw new Error('Failed to delete coupon');
+          setCoupons((prev) => prev.filter((c) => c.id !== coupon.id));
+          recordActivity('Coupon Deleted', `Deleted coupon "${coupon.code}".`, 'system');
+        } catch (e: any) {
+          setPopup({ open: true, type: 'error', title: 'Delete Failed', message: e.message || 'Could not delete coupon.' });
         }
       },
     });
@@ -856,13 +951,105 @@ export default function AdminDashboardMainPage() {
           <div className={styles.header}>
             <div className={styles.titleArea}>
               <h2 className={styles.title}>Coupons & Promotional Discounts</h2>
-              <span className={styles.subTitle}>Manage discount vouchers and festive offers</span>
+              <span className={styles.subTitle}>
+                Create and manage live discount coupons. Only coupons saved in database are shown below.
+              </span>
             </div>
-            <button className={styles.primaryBtn}>
-              <ConfirmationNumberIcon fontSize="small" />
-              <span>Create Coupon</span>
-            </button>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button
+                type="button"
+                className={styles.secondaryBtn}
+                onClick={fetchCouponsList}
+                disabled={loadingCoupons}
+                title="Refresh coupons from database"
+              >
+                <span>{loadingCoupons ? 'Refreshing...' : 'Refresh'}</span>
+              </button>
+              <button
+                type="button"
+                className={styles.primaryBtn}
+                onClick={() => setShowCouponForm((v) => !v)}
+              >
+                <ConfirmationNumberIcon fontSize="small" />
+                <span>{showCouponForm ? 'Close Form' : 'Create Coupon'}</span>
+              </button>
+            </div>
           </div>
+
+          {showCouponForm && (
+            <form
+              onSubmit={handleCreateCoupon}
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+                gap: '12px',
+                padding: '16px',
+                marginBottom: '20px',
+                background: 'var(--primary-light)',
+                borderRadius: '12px',
+                border: '1px solid var(--border)',
+              }}
+            >
+              <div>
+                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, marginBottom: '4px' }}>
+                  Coupon Code *
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="WELCOME10"
+                  value={newCoupon.code}
+                  onChange={(e) => setNewCoupon({ ...newCoupon, code: e.target.value.toUpperCase() })}
+                  style={{ width: '100%', padding: '8px 10px', borderRadius: '8px', border: '1px solid var(--border)', background: '#fff', fontFamily: 'monospace', fontWeight: 700 }}
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, marginBottom: '4px' }}>
+                  Discount (%) *
+                </label>
+                <input
+                  type="number"
+                  required
+                  min={1}
+                  max={90}
+                  value={newCoupon.discountPct}
+                  onChange={(e) => setNewCoupon({ ...newCoupon, discountPct: e.target.value })}
+                  style={{ width: '100%', padding: '8px 10px', borderRadius: '8px', border: '1px solid var(--border)', background: '#fff' }}
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, marginBottom: '4px' }}>
+                  Min Order (₹)
+                </label>
+                <input
+                  type="number"
+                  min={0}
+                  value={newCoupon.minOrderValue}
+                  onChange={(e) => setNewCoupon({ ...newCoupon, minOrderValue: e.target.value })}
+                  style={{ width: '100%', padding: '8px 10px', borderRadius: '8px', border: '1px solid var(--border)', background: '#fff' }}
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, marginBottom: '4px' }}>
+                  Max Discount (₹, optional)
+                </label>
+                <input
+                  type="number"
+                  min={0}
+                  placeholder="No cap"
+                  value={newCoupon.maxDiscount}
+                  onChange={(e) => setNewCoupon({ ...newCoupon, maxDiscount: e.target.value })}
+                  style={{ width: '100%', padding: '8px 10px', borderRadius: '8px', border: '1px solid var(--border)', background: '#fff' }}
+                />
+              </div>
+              <div style={{ display: 'flex', alignItems: 'flex-end', gap: '8px' }}>
+                <button type="submit" disabled={savingCoupon} className={styles.primaryBtn} style={{ width: '100%', justifyContent: 'center' }}>
+                  {savingCoupon ? 'Saving...' : 'Save Coupon'}
+                </button>
+              </div>
+            </form>
+          )}
+
           <div className={styles.tableWrap}>
             <table className={styles.table}>
               <thead>
@@ -870,22 +1057,58 @@ export default function AdminDashboardMainPage() {
                   <th>Code</th>
                   <th>Discount</th>
                   <th>Min Order</th>
+                  <th>Max Cap</th>
                   <th>Status</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                <tr>
-                  <td style={{ fontFamily: 'monospace', fontWeight: 700, color: 'var(--primary)' }}>REHAS10</td>
-                  <td>10% OFF</td>
-                  <td>₹999</td>
-                  <td><span className={`${styles.badge} ${styles.badgeActive}`}>Active</span></td>
-                </tr>
-                <tr>
-                  <td style={{ fontFamily: 'monospace', fontWeight: 700, color: 'var(--primary)' }}>SHIVRATRI</td>
-                  <td>₹200 Flat</td>
-                  <td>₹1,499</td>
-                  <td><span className={`${styles.badge} ${styles.badgeActive}`}>Active</span></td>
-                </tr>
+                {coupons.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} style={{ textAlign: 'center', padding: '24px', color: 'var(--text-secondary)' }}>
+                      No coupons found in database. Click &ldquo;Create Coupon&rdquo; to add one (e.g. WELCOME10 for 10% off).
+                    </td>
+                  </tr>
+                ) : (
+                  coupons.map((c) => (
+                    <tr key={c.id}>
+                      <td style={{ fontFamily: 'monospace', fontWeight: 700, color: 'var(--primary)' }}>{c.code}</td>
+                      <td>{c.discountPct}% OFF</td>
+                      <td>{formatINR(c.minOrderValue)}</td>
+                      <td>{c.maxDiscount ? formatINR(c.maxDiscount) : 'No cap'}</td>
+                      <td>
+                        <button
+                          type="button"
+                          onClick={() => handleToggleCoupon(c)}
+                          style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+                          title="Click to toggle Active/Inactive"
+                        >
+                          <span className={`${styles.badge} ${c.isActive ? styles.badgeActive : styles.badgePending}`}>
+                            {c.isActive ? 'Active' : 'Inactive'}
+                          </span>
+                        </button>
+                      </td>
+                      <td>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteCoupon(c)}
+                          style={{
+                            background: 'transparent',
+                            border: '1px solid var(--border)',
+                            borderRadius: '6px',
+                            padding: '4px 10px',
+                            fontSize: '0.75rem',
+                            color: 'var(--danger)',
+                            cursor: 'pointer',
+                            fontWeight: 600,
+                          }}
+                        >
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>

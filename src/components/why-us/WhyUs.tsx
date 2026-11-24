@@ -27,7 +27,7 @@ export default function WhyUs() {
     {
       icon: <CheckCircle2 size={26} />,
       title: 'Razorpay & COD Supported',
-      desc: 'Pay seamlessly with UPI, Cards, Netbanking, or choose Cash on Delivery at your doorstep.',
+      desc: 'Pay seamlessly with 100% secured UPI, Credit/Debit Cards, NetBanking via Razorpay.',
     },
     {
       icon: <Headphones size={26} />,
