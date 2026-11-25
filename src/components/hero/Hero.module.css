@@ -577,6 +577,8 @@
   align-items: center;
   justify-content: center;
   animation: spinOuter 90s linear infinite;
+  transform: translateZ(0);
+  will-change: transform;
   z-index: 1;
 }
 
@@ -589,6 +591,8 @@
   align-items: center;
   justify-content: center;
   animation: spinInner 65s linear infinite;
+  transform: translateZ(0);
+  will-change: transform;
   z-index: 2;
 }
 

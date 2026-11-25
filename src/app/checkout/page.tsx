@@ -406,8 +406,18 @@ function CheckoutContent() {
               }
             },
             modal: {
-              ondismiss: function () {
+              ondismiss: async function () {
                 setIsSubmitting(false);
+                setErrorMsg('Payment was cancelled. You can retry checkout anytime.');
+                try {
+                  await fetch('/api/orders/cancel', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ orderId: order.id, reason: 'User dismissed Razorpay payment' }),
+                  });
+                } catch {
+                  // ignore
+                }
               },
             },
           };

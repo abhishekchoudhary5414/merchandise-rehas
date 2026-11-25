@@ -5,6 +5,7 @@ import Navbar from '@/components/navbar/Navbar';
 import ProductCard from '@/components/products/ProductCard';
 import Footer from '@/components/footer/Footer';
 import WhatsAppFloat from '@/components/whatsapp/WhatsAppFloat';
+import BreadcrumbNav from '@/components/common/BreadcrumbNav';
 import Link from 'next/link';
 
 interface ShopPageProps {
@@ -50,7 +51,15 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
       <AnnouncementBar />
       <Navbar />
 
-      <main style={{ padding: '60px 24px', flex: 1, maxWidth: 'var(--container-width)', margin: '0 auto', width: '100%', boxSizing: 'border-box' }}>
+      <main style={{ padding: '30px 24px 60px', flex: 1, maxWidth: 'var(--container-width)', margin: '0 auto', width: '100%', boxSizing: 'border-box' }}>
+        <BreadcrumbNav
+          items={[
+            ...(category ? [{ label: 'Bracelets', href: '/shop' }, { label: category }] : [{ label: 'Bracelets' }]),
+          ]}
+          showBackButton={true}
+          backLabel="Back"
+        />
+
         {/* Header */}
         <div style={{ marginBottom: '40px', textAlign: 'center' }}>
           <span style={{ fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '2px', color: 'var(--secondary)' }}>

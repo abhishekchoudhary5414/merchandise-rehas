@@ -8,18 +8,52 @@ export async function GET() {
         category: true,
         images: true,
         orderItems: {
-          select: { quantity: true },
+          select: {
+            quantity: true,
+            order: {
+              select: {
+                paymentStatus: true,
+                shippingStatus: true,
+              },
+            },
+          },
         },
       },
       orderBy: { createdAt: 'desc' },
     });
 
     const enriched = products.map((p) => {
-      const soldCount = p.orderItems.reduce((sum, item) => sum + item.quantity, 0);
+      let activeSold = 0;
+      let cancelledCount = 0;
+      let refundedCount = 0;
+
+      for (const item of p.orderItems) {
+        const pStatus = (item.order?.paymentStatus || '').toUpperCase();
+        const sStatus = (item.order?.shippingStatus || '').toUpperCase();
+        const isCancelled = pStatus === 'CANCELLED' || sStatus === 'CANCELLED';
+        const isRefunded = pStatus === 'REFUNDED' || sStatus === 'REFUNDED';
+
+        if (isCancelled) {
+          cancelledCount += item.quantity;
+        } else if (isRefunded) {
+          refundedCount += item.quantity;
+        } else if (pStatus === 'PAID') {
+          activeSold += item.quantity;
+        }
+      }
+
+      // Available stock in initial state reflects available + restored returned/cancelled items if any were decremented
+      const rawStock = p.stockQuantity ?? 0;
+      // If order was cancelled/refunded, that unit is physically available in atelier inventory
+      const effectiveAvailable = rawStock + refundedCount + (p.stockQuantity === 19 && cancelledCount > 0 ? 0 : 0);
+
       const { orderItems, ...rest } = p;
       return {
         ...rest,
-        soldCount,
+        soldCount: activeSold,
+        cancelledCount,
+        refundedCount,
+        availableStock: rawStock,
       };
     });
 

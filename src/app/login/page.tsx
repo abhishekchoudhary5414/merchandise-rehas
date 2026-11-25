@@ -35,8 +35,7 @@ type Mode = 'LOGIN' | 'REGISTER' | 'FORGOT_REQUEST' | 'FORGOT_VERIFY';
 function CustomerAuthPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirectParam = searchParams.get('redirect');
-  const redirectTo = redirectParam && redirectParam.startsWith('/') ? redirectParam : '/account';
+  const redirectTo = '/account';
   const tabParam = searchParams.get('tab');
   const [mode, setMode] = useState<Mode>(tabParam === 'register' ? 'REGISTER' : 'LOGIN');
   const [user, setUser] = useState<any>(null);
@@ -52,6 +51,7 @@ function CustomerAuthPage() {
   const [showConfirmPwd, setShowConfirmPwd] = useState(false);
 
   // OTP State for Registration
+  const [registerStep, setRegisterStep] = useState<1 | 2 | 3>(1);
   const [registerOtp, setRegisterOtp] = useState('');
   const [otpSent, setOtpSent] = useState(false);
   const [sendingOtp, setSendingOtp] = useState(false);
@@ -116,9 +116,18 @@ function CustomerAuthPage() {
     }
   }
 
-  async function handleSendRegisterOtp() {
+  async function handleSendRegisterOtp(e?: React.FormEvent) {
+    if (e) e.preventDefault();
+    if (!name || !name.trim()) {
+      setError('Please enter your full name.');
+      return;
+    }
     if (!email || !email.includes('@')) {
-      setError('Please enter a valid email address first.');
+      setError('Please enter a valid email address.');
+      return;
+    }
+    if (phone && phone.trim().length > 0 && phone.trim().length !== 10) {
+      setError('Mobile number must be exactly 10 digits.');
       return;
     }
     setError(null);
@@ -134,7 +143,8 @@ function CustomerAuthPage() {
       if (!res.ok) throw new Error(data.error || 'Failed to send OTP');
       setOtpSent(true);
       setResendCountdown(60);
-      setSuccess(data.message || 'Verification code sent to your email.');
+      setSuccess(data.message || `Verification code sent to ${email}`);
+      setRegisterStep(2);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -142,14 +152,22 @@ function CustomerAuthPage() {
     }
   }
 
-  async function handleRegister(e: React.FormEvent) {
+  function handleVerifyOtpStep(e: React.FormEvent) {
     e.preventDefault();
-    if (!otpSent) {
-      setError('Please click "Send OTP" to receive verification code first.');
+    if (!registerOtp || registerOtp.trim().length !== 6) {
+      setError('Please enter the 6-digit OTP sent to your email.');
       return;
     }
+    setError(null);
+    setSuccess('OTP entered. Please create a secure password to complete your account.');
+    setRegisterStep(3);
+  }
+
+  async function handleRegister(e: React.FormEvent) {
+    e.preventDefault();
     if (!registerOtp || registerOtp.trim().length !== 6) {
       setError('Please enter the 6-digit OTP code sent to your email.');
+      setRegisterStep(2);
       return;
     }
 
@@ -313,14 +331,24 @@ function CustomerAuthPage() {
 
                 <h2 className={styles.panelHeading}>
                   {mode === 'REGISTER'
-                    ? 'Join REHAS Circle'
+                    ? (
+                      <>
+                        Create Your <br />
+                        <span className={styles.goldAccent}>Sacred Account</span>
+                      </>
+                    )
                     : mode === 'LOGIN'
-                    ? 'Sacred Sanctuary'
+                    ? (
+                      <>
+                        Welcome to <br />
+                        <span className={styles.goldAccent}>Sacred Sanctuary</span>
+                      </>
+                    )
                     : 'Account Recovery'}
                 </h2>
                 <p className={styles.panelSub}>
                   {mode === 'REGISTER'
-                    ? 'Create your account securely with email OTP verification. Unlock member privileges, instant discounts, and express checkout.'
+                    ? 'Begin your energized gemstone journey. Create your verified patron account to unlock Vedic energization rituals, member privileges, and express pan-India dispatch.'
                     : mode === 'LOGIN'
                     ? 'Sign in to access your consecrated orders, customized astrology energizations, and sacred wishlist.'
                     : 'Receive a secure one-time verification code on your registered email to reset your credentials.'}
@@ -328,16 +356,22 @@ function CustomerAuthPage() {
 
                 <ul className={styles.perkList}>
                   <li className={styles.perkItem}>
-                    <ShieldCheck size={18} className={styles.perkIcon} />
-                    <span>Instant OTP email security check</span>
+                    <div className={styles.perkIconWrap}>
+                      <ShieldCheck size={18} />
+                    </div>
+                    <span>Instant OTP email verification check</span>
                   </li>
                   <li className={styles.perkItem}>
-                    <Sparkles size={18} className={styles.perkIcon} />
-                    <span>Special member coupons & discounts</span>
+                    <div className={styles.perkIconWrap}>
+                      <Sparkles size={18} />
+                    </div>
+                    <span>Exclusive patron coupons & discounts</span>
                   </li>
                   <li className={styles.perkItem}>
-                    <Truck size={18} className={styles.perkIcon} />
-                    <span>Fast pan-India doorstep dispatch</span>
+                    <div className={styles.perkIconWrap}>
+                      <Truck size={18} />
+                    </div>
+                    <span>Doorstep express dispatch across India</span>
                   </li>
                 </ul>
               </div>
@@ -443,137 +477,301 @@ function CustomerAuthPage() {
                 </form>
               )}
 
-              {/* 2. REGISTRATION FORM WITH OTP */}
+              {/* 2. REGISTRATION FORM DIVIDED INTO 3 DISTINCT SECTIONS */}
               {mode === 'REGISTER' && (
-                <form onSubmit={handleRegister} className={styles.form}>
-                  <h2 className={styles.formTitle}>Create Account with OTP</h2>
-                  <p className={styles.formSubtitle}>
-                    Fast and verified account creation for sacred seekers.
-                  </p>
+                <div className={styles.form}>
+                  <div className={styles.formHeader}>
+                    <span className={styles.formTag}>
+                      <Sparkles size={12} /> REHAS Consecrated Boutique
+                    </span>
+                    <h2 className={styles.formTitle}>Create Sacred Account</h2>
+                    <p className={styles.formSubtitle}>
+                      {registerStep === 1
+                        ? 'Step 1 of 3: Provide your contact credentials'
+                        : registerStep === 2
+                        ? 'Step 2 of 3: Verify the one-time code sent to your email'
+                        : 'Step 3 of 3: Set your personal account password'}
+                    </p>
+                  </div>
 
-                  <div className={styles.inputGroup}>
-                    <label className={styles.label}>Full Name *</label>
-                    <div className={styles.inputWrap}>
-                      <UserIcon size={16} className={styles.inputIcon} />
-                      <input
-                        type="text"
-                        required
-                        placeholder="e.g. Priya Sharma"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        className={styles.input}
-                      />
+                  {/* 3-Step Visual Progress Stepper */}
+                  <div className={styles.stepper}>
+                    <div
+                      className={`${styles.stepItem} ${
+                        registerStep === 1
+                          ? styles.stepActive
+                          : registerStep > 1
+                          ? styles.stepCompleted
+                          : ''
+                      }`}
+                    >
+                      <div className={styles.stepBadge}>
+                        {registerStep > 1 ? <CheckCircle2 size={16} /> : '1'}
+                      </div>
+                      <span className={styles.stepLabel}>1. Details</span>
+                    </div>
+
+                    <div
+                      className={`${styles.stepLine} ${
+                        registerStep > 1 ? styles.stepLineActive : ''
+                      }`}
+                    />
+
+                    <div
+                      className={`${styles.stepItem} ${
+                        registerStep === 2
+                          ? styles.stepActive
+                          : registerStep > 2
+                          ? styles.stepCompleted
+                          : ''
+                      }`}
+                    >
+                      <div className={styles.stepBadge}>
+                        {registerStep > 2 ? <CheckCircle2 size={16} /> : '2'}
+                      </div>
+                      <span className={styles.stepLabel}>2. Verify OTP</span>
+                    </div>
+
+                    <div
+                      className={`${styles.stepLine} ${
+                        registerStep > 2 ? styles.stepLineActive : ''
+                      }`}
+                    />
+
+                    <div
+                      className={`${styles.stepItem} ${
+                        registerStep === 3 ? styles.stepActive : ''
+                      }`}
+                    >
+                      <div className={styles.stepBadge}>3</div>
+                      <span className={styles.stepLabel}>3. Password</span>
                     </div>
                   </div>
 
-                  <div className={styles.inputGroup}>
-                    <label className={styles.label}>Email Address (Receives OTP) *</label>
-                    <div className={styles.inputWrap}>
-                      <Mail size={16} className={styles.inputIcon} />
-                      <input
-                        type="email"
-                        required
-                        placeholder="priya@example.com"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        className={styles.input}
-                      />
-                    </div>
-                  </div>
+                  {/* SECTION 1: NAME, EMAIL, PHONE */}
+                  {registerStep === 1 && (
+                    <form onSubmit={handleSendRegisterOtp} className={styles.form}>
+                      <div className={styles.inputGroup}>
+                        <label className={styles.label}>
+                          <span>Full Name *</span>
+                        </label>
+                        <div className={styles.inputWrap}>
+                          <UserIcon size={18} className={styles.inputIcon} />
+                          <input
+                            type="text"
+                            required
+                            placeholder="e.g. Priya Sharma"
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                            className={styles.input}
+                          />
+                        </div>
+                      </div>
 
-                  <div className={styles.inputGroup}>
-                    <label className={styles.label}>Email Verification OTP *</label>
-                    <div className={styles.otpRow}>
-                      <input
-                        type="text"
-                        maxLength={6}
-                        placeholder="6-DIGIT OTP"
-                        value={registerOtp}
-                        onChange={(e) => setRegisterOtp(e.target.value.replace(/\D/g, ''))}
-                        className={styles.otpInput}
-                      />
+                      <div className={styles.inputGroup}>
+                        <label className={styles.label}>
+                          <span>Email Address (Receives OTP) *</span>
+                        </label>
+                        <div className={styles.inputWrap}>
+                          <Mail size={18} className={styles.inputIcon} />
+                          <input
+                            type="email"
+                            required
+                            placeholder="priya@example.com"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            className={styles.input}
+                          />
+                        </div>
+                      </div>
+
+                      <div className={styles.inputGroup}>
+                        <label className={styles.label}>
+                          <span>Mobile Number</span>
+                          <span className={styles.optionalTag}>(Optional)</span>
+                        </label>
+                        <div className={styles.inputWrap}>
+                          <Phone size={18} className={styles.inputIcon} />
+                          <input
+                            type="tel"
+                            maxLength={10}
+                            placeholder="10-digit Indian mobile (e.g. 9876543210)"
+                            value={phone}
+                            onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
+                            className={styles.input}
+                          />
+                        </div>
+                      </div>
+
                       <button
-                        type="button"
-                        onClick={handleSendRegisterOtp}
-                        disabled={sendingOtp || !email || resendCountdown > 0}
-                        className={styles.sendOtpBtn}
+                        type="submit"
+                        disabled={sendingOtp || !email || !name}
+                        className={styles.submitBtn}
+                        style={{ marginTop: '0.5rem', padding: '0.95rem 1.5rem' }}
                       >
-                        {sendingOtp
-                          ? 'Sending...'
-                          : resendCountdown > 0
-                          ? `Resend in ${resendCountdown}s`
-                          : otpSent
-                          ? 'Resend OTP'
-                          : 'Send OTP'}
+                        {sendingOtp ? 'Sending Verification OTP...' : 'Continue to OTP Verification'} <ArrowRight size={16} />
                       </button>
-                    </div>
-                  </div>
+                    </form>
+                  )}
 
-                  <div className={styles.inputGroup}>
-                    <label className={styles.label}>Mobile Number (Optional)</label>
-                    <div className={styles.inputWrap}>
-                      <Phone size={16} className={styles.inputIcon} />
-                      <input
-                        type="tel"
-                        maxLength={10}
-                        placeholder="10-digit Indian mobile (e.g. 9876543210)"
-                        value={phone}
-                        onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
-                        className={styles.input}
-                      />
-                    </div>
-                  </div>
+                  {/* SECTION 2: OTP VERIFICATION */}
+                  {registerStep === 2 && (
+                    <form onSubmit={handleVerifyOtpStep}>
+                      <div className={styles.otpHintBox}>
+                        <span>
+                          We sent a 6-digit verification code to <strong>{email}</strong>
+                        </span>
+                        <span style={{ fontSize: '0.775rem', color: 'var(--text-secondary)' }}>
+                          Please enter the code to confirm your email address.
+                        </span>
+                      </div>
 
-                  <div className={styles.inputGroup}>
-                    <label className={styles.label}>Create Password (Min 6 chars) *</label>
-                    <div className={styles.inputWrap}>
-                      <Lock size={16} className={styles.inputIcon} />
-                      <input
-                        type={showPwd ? 'text' : 'password'}
-                        required
-                        minLength={6}
-                        placeholder="••••••••"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        className={styles.input}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowPwd((v) => !v)}
-                        className={styles.eyeBtn}
-                      >
-                        {showPwd ? <EyeOff size={16} /> : <Eye size={16} />}
-                      </button>
-                    </div>
-                  </div>
+                      <div className={styles.inputGroup} style={{ marginTop: '0.75rem' }}>
+                        <label className={styles.label}>Enter 6-Digit OTP *</label>
+                        <input
+                          type="text"
+                          required
+                          maxLength={6}
+                          placeholder="••••••"
+                          value={registerOtp}
+                          onChange={(e) => setRegisterOtp(e.target.value.replace(/\D/g, ''))}
+                          className={styles.otpInputBig}
+                          autoFocus
+                        />
+                      </div>
 
-                  <div className={styles.inputGroup}>
-                    <label className={styles.label}>Confirm Password *</label>
-                    <div className={styles.inputWrap}>
-                      <Lock size={16} className={styles.inputIcon} />
-                      <input
-                        type={showConfirmPwd ? 'text' : 'password'}
-                        required
-                        minLength={6}
-                        placeholder="••••••••"
-                        value={confirmPassword}
-                        onChange={(e) => setConfirmPassword(e.target.value)}
-                        className={styles.input}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowConfirmPwd((v) => !v)}
-                        className={styles.eyeBtn}
-                      >
-                        {showConfirmPwd ? <EyeOff size={16} /> : <Eye size={16} />}
-                      </button>
-                    </div>
-                  </div>
+                      <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '0.35rem' }}>
+                        <button
+                          type="button"
+                          onClick={() => handleSendRegisterOtp()}
+                          disabled={sendingOtp || resendCountdown > 0}
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            color: resendCountdown > 0 ? 'var(--text-secondary)' : 'var(--primary)',
+                            fontSize: '0.825rem',
+                            fontWeight: 700,
+                            cursor: resendCountdown > 0 ? 'default' : 'pointer',
+                            padding: '4px 0',
+                          }}
+                        >
+                          {sendingOtp
+                            ? 'Sending...'
+                            : resendCountdown > 0
+                            ? `Resend OTP in ${resendCountdown}s`
+                            : 'Resend OTP'}
+                        </button>
+                      </div>
 
-                  <button type="submit" disabled={loading} className={styles.submitBtn}>
-                    {loading ? 'Creating Account...' : 'Verify OTP & Create Account'}
-                  </button>
-                </form>
+                      <div className={styles.stepButtonRow}>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setError(null);
+                            setSuccess(null);
+                            setRegisterStep(1);
+                          }}
+                          className={styles.backStepBtn}
+                        >
+                          <ArrowLeft size={15} /> Edit Info
+                        </button>
+
+                        <button
+                          type="submit"
+                          disabled={registerOtp.length !== 6}
+                          className={styles.submitBtn}
+                          style={{ flex: 1, marginTop: 0 }}
+                        >
+                          Verify & Set Password <ArrowRight size={16} />
+                        </button>
+                      </div>
+                    </form>
+                  )}
+
+                  {/* SECTION 3: CREATE & CONFIRM PASSWORD */}
+                  {registerStep === 3 && (
+                    <form onSubmit={handleRegister}>
+                      <div className={styles.otpHintBox} style={{ background: '#ECFDF5', borderColor: '#A7F3D0', color: '#065F46' }}>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 700 }}>
+                          <CheckCircle2 size={16} color="#047857" /> Email Verified ({email})
+                        </span>
+                        <span style={{ fontSize: '0.775rem' }}>
+                          Now choose a secure password to finalize your account.
+                        </span>
+                      </div>
+
+                      <div className={styles.inputGroup} style={{ marginTop: '0.75rem' }}>
+                        <label className={styles.label}>Create Password (Min 6 chars) *</label>
+                        <div className={styles.inputWrap}>
+                          <Lock size={16} className={styles.inputIcon} />
+                          <input
+                            type={showPwd ? 'text' : 'password'}
+                            required
+                            minLength={6}
+                            placeholder="••••••••"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            className={styles.input}
+                            autoFocus
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowPwd((v) => !v)}
+                            className={styles.eyeBtn}
+                          >
+                            {showPwd ? <EyeOff size={16} /> : <Eye size={16} />}
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className={styles.inputGroup}>
+                        <label className={styles.label}>Confirm Password *</label>
+                        <div className={styles.inputWrap}>
+                          <Lock size={16} className={styles.inputIcon} />
+                          <input
+                            type={showConfirmPwd ? 'text' : 'password'}
+                            required
+                            minLength={6}
+                            placeholder="••••••••"
+                            value={confirmPassword}
+                            onChange={(e) => setConfirmPassword(e.target.value)}
+                            className={styles.input}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowConfirmPwd((v) => !v)}
+                            className={styles.eyeBtn}
+                          >
+                            {showConfirmPwd ? <EyeOff size={16} /> : <Eye size={16} />}
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className={styles.stepButtonRow}>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setError(null);
+                            setSuccess(null);
+                            setRegisterStep(2);
+                          }}
+                          className={styles.backStepBtn}
+                        >
+                          <ArrowLeft size={15} /> Back
+                        </button>
+
+                        <button
+                          type="submit"
+                          disabled={loading || password.length < 6 || password !== confirmPassword}
+                          className={styles.submitBtn}
+                          style={{ flex: 1, marginTop: 0 }}
+                        >
+                          {loading ? 'Finalizing Account...' : 'Create Account & Sign In'}
+                        </button>
+                      </div>
+                    </form>
+                  )}
+                </div>
               )}
 
               {/* 3. FORGOT PASSWORD REQUEST */}

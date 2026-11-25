@@ -15,6 +15,9 @@ import AccountSection from '@/components/admin/account/AccountSection';
 import NotificationsSection, { ActivityNotification } from '@/components/admin/notifications/NotificationsSection';
 import AddProductSection from '@/components/admin/products/AddProductSection';
 import AddCategorySection from '@/components/admin/categories/AddCategorySection';
+import CustomersSection from '@/components/admin/customers/CustomersSection';
+import InventorySection from '@/components/admin/inventory/InventorySection';
+import OrdersSection from '@/components/admin/orders/OrdersSection';
 import SectionSkeleton from '@/components/admin/common/SectionSkeleton';
 import PopupModal, { PopupState } from '@/components/admin/common/PopupModal';
 
@@ -62,6 +65,25 @@ export default function AdminDashboardMainPage() {
     maxDiscount: '',
     isActive: true,
   });
+
+  // Real Database Customers State
+  const [customers, setCustomers] = useState<any[]>([]);
+  const [loadingCustomers, setLoadingCustomers] = useState(false);
+
+  async function fetchCustomersList() {
+    setLoadingCustomers(true);
+    try {
+      const res = await fetch('/api/admin/customers');
+      if (res.ok) {
+        const data = await res.json();
+        if (data.customers) setCustomers(data.customers);
+      }
+    } catch {
+      // Ignore
+    } finally {
+      setLoadingCustomers(false);
+    }
+  }
 
   async function fetchCouponsList() {
     setLoadingCoupons(true);
@@ -133,6 +155,9 @@ export default function AdminDashboardMainPage() {
     recordActivity('Section Viewed', `Navigated to ${section} section.`, 'system');
     if (section === 'coupons') {
       fetchCouponsList();
+    }
+    if (section === 'customers') {
+      fetchCustomersList();
     }
   }
 
@@ -263,27 +288,97 @@ export default function AdminDashboardMainPage() {
     loadData();
   }, []);
 
-  function handleRefund(orderId: string, amount: number) {
+  async function handleStatusChange(orderId: string, shippingStatus: string, paymentStatus?: string) {
+    try {
+      const res = await fetch('/api/admin/orders', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId, shippingStatus, paymentStatus }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Status update failed');
+      setOrders((current) =>
+        current.map((order) =>
+          order.id === orderId
+            ? {
+                ...order,
+                shippingStatus,
+                ...(data.order?.paymentStatus ? { paymentStatus: data.order.paymentStatus } : {}),
+              }
+            : order
+        )
+      );
+      setPopup({
+        open: true,
+        type: 'success',
+        title: 'Order Status Updated',
+        message: `${data.message || 'Status successfully updated'}.`,
+      });
+    } catch (error: any) {
+      setPopup({ open: true, type: 'error', title: 'Status Update Failed', message: error.message || 'Could not update status' });
+    }
+  }
+
+  function handleRefund(orderId: string, amount: number, forceOffline = false) {
     setPopup({
       open: true,
       type: 'confirm',
-      title: 'Confirm Razorpay Refund',
-      message: `Are you sure you want to refund ${formatINR(amount)} via Razorpay for this order?`,
-      confirmLabel: 'Issue Refund',
+      title: forceOffline ? 'Confirm Manual / Offline Refund' : 'Confirm Razorpay Refund',
+      message: forceOffline
+        ? `Mark order as refunded for ${formatINR(amount)} and update customer ledger? (Use this if Razorpay wallet has insufficient merchant balance)`
+        : `Are you sure you want to refund ${formatINR(amount)} via Razorpay for this order?`,
+      confirmLabel: forceOffline ? 'Mark as Refunded' : 'Issue Refund',
       danger: true,
       onConfirm: async () => {
         try {
           const res = await fetch('/api/admin/orders/refund', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ orderId, amount, reason: 'Approved refund' }),
+            body: JSON.stringify({
+              orderId,
+              amount,
+              reason: 'Customer return and refund',
+              forceOfflineRefund: forceOffline,
+            }),
           });
           const data = await res.json();
-          if (!res.ok) throw new Error(data.error || 'Refund failed');
-          recordActivity('Refund Processed', `Refund of ${formatINR(amount)} initiated for order.`, 'order');
-          setPopup({ open: true, type: 'success', title: 'Refund Processed', message: data.message || 'Refund completed successfully.' });
+          if (!res.ok) {
+            if (data.canForceOffline) {
+              setPopup({
+                open: true,
+                type: 'confirm',
+                title: 'Razorpay Balance Insufficient',
+                message: `${data.error}\n\nWould you like to record this as an offline/direct UPI refund in the database now?`,
+                confirmLabel: 'Record Offline Refund',
+                danger: false,
+                onConfirm: () => handleRefund(orderId, amount, true),
+              });
+              return;
+            }
+            throw new Error(data.error || 'Refund failed');
+          }
+
+          setOrders((current) =>
+            current.map((order) =>
+              order.id === orderId
+                ? { ...order, paymentStatus: 'REFUNDED', shippingStatus: 'REFUNDED' }
+                : order
+            )
+          );
+          recordActivity('Refund Processed', `Refund of ${formatINR(amount)} completed for order.`, 'order');
+          setPopup({
+            open: true,
+            type: 'success',
+            title: 'Refund Processed',
+            message: data.message || 'Refund completed successfully.',
+          });
         } catch (e: any) {
-          setPopup({ open: true, type: 'error', title: 'Refund Failed', message: e.message || 'Could not process refund.' });
+          setPopup({
+            open: true,
+            type: 'error',
+            title: 'Refund Failed',
+            message: e.message || 'Could not process refund.',
+          });
         }
       },
     });
@@ -466,7 +561,7 @@ export default function AdminDashboardMainPage() {
               }}
             />
           </div>
-          <RecentOrders orders={orders} />
+          <RecentOrders orders={orders} onSelectOrders={() => handleSectionChange('orders')} />
         </>
       )}
 
@@ -752,197 +847,26 @@ export default function AdminDashboardMainPage() {
 
       {/* 4. INVENTORY SECTION */}
       {activeSection === 'inventory' && (
-        <div className={styles.card}>
-          <div className={styles.header}>
-            <div className={styles.titleArea}>
-              <h2 className={styles.title}>Inventory &amp; Sales Control</h2>
-              <span className={styles.subTitle}>Live stock counts, units sold &amp; low inventory warnings</span>
-            </div>
-          </div>
-          <div className={styles.tableWrap}>
-            <table className={styles.table}>
-              <thead>
-                <tr>
-                  <th>Item SKU</th>
-                  <th>Merchandise Item</th>
-                  <th>Units Sold</th>
-                  <th>Available Stock</th>
-                  <th>Stock Status</th>
-                  <th>Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {products.length === 0 ? (
-                  <tr>
-                    <td colSpan={6} style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-secondary)' }}>
-                      No inventory items found.
-                    </td>
-                  </tr>
-                ) : (
-                  products.map((p) => {
-                    const qty = p.stockQuantity ?? 0;
-                    const sold = p.soldCount ?? 0;
-                    const statusLabel = qty === 0 ? 'Out of Stock' : qty <= 5 ? 'Low Stock' : 'In Stock';
-                    return (
-                      <tr key={p.id}>
-                        <td style={{ fontFamily: 'monospace', fontWeight: 600 }}>{p.sku}</td>
-                        <td style={{ fontWeight: 600 }}>{p.name}</td>
-                        <td style={{ fontWeight: 700, color: 'var(--primary)' }}>{sold} sold</td>
-                        <td>{qty} units</td>
-                        <td>
-                          <span className={`${styles.badge} ${qty > 5 ? styles.badgeActive : styles.badgeDraft}`}>
-                            {statusLabel}
-                          </span>
-                        </td>
-                        <td>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setEditingProduct(p);
-                              setActiveSection('products');
-                            }}
-                            style={{
-                              background: 'var(--primary-light)',
-                              color: 'var(--primary)',
-                              border: '1px solid rgba(86, 0, 103, 0.2)',
-                              padding: '4px 10px',
-                              borderRadius: '6px',
-                              fontSize: '0.75rem',
-                              fontWeight: 600,
-                              cursor: 'pointer',
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: '4px',
-                            }}
-                          >
-                            <EditOutlinedIcon fontSize="inherit" />
-                            <span>Update</span>
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
+        <InventorySection
+          onEditProduct={(p) => {
+            setEditingProduct(p);
+            setActiveSection('products');
+          }}
+        />
       )}
 
       {/* 5. ORDERS & RETURNS SECTION */}
       {(activeSection === 'orders' || activeSection === 'returns') && (
-        <div className={styles.card}>
-          <div className={styles.header}>
-            <div className={styles.titleArea}>
-              <h2 className={styles.title}>
-                {activeSection === 'orders' ? 'Customer Orders' : 'Returns & Refunds'}
-              </h2>
-              <span className={styles.subTitle}>
-                {activeSection === 'orders'
-                  ? 'All completed orders and fulfillment stages'
-                  : 'Customer return requests and Razorpay refunds'}
-              </span>
-            </div>
-          </div>
-
-          <div className={styles.tableWrap}>
-            <table className={styles.table}>
-              <thead>
-                <tr>
-                  <th>Order #</th>
-                  <th>Customer</th>
-                  <th>Location</th>
-                  <th>Amount</th>
-                  <th>Payment</th>
-                  <th>Fulfillment</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {orders.length === 0 ? (
-                  <tr>
-                    <td colSpan={7} style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-secondary)' }}>
-                      No orders placed yet.
-                    </td>
-                  </tr>
-                ) : (
-                  orders.map((o) => (
-                    <tr key={o.id}>
-                      <td style={{ fontFamily: 'monospace', fontWeight: 600 }}>{o.orderNumber}</td>
-                      <td>
-                        <div style={{ fontWeight: 600 }}>{o.customerName}</div>
-                        <div style={{ fontSize: '0.725rem', color: 'var(--text-secondary)' }}>{o.customerPhone}</div>
-                      </td>
-                      <td>{o.city}, {o.pinCode}</td>
-                      <td style={{ fontWeight: 700, color: 'var(--primary)' }}>{formatINR(o.totalAmount)}</td>
-                      <td>
-                        <span className={`${styles.badge} ${styles.badgeActive}`}>
-                          {o.paymentMethod} · {o.paymentStatus}
-                        </span>
-                      </td>
-                      <td>{o.shippingStatus}</td>
-                      <td>
-                        {o.paymentStatus === 'PAID' && (
-                          <button
-                            onClick={() => handleRefund(o.id, o.totalAmount)}
-                            style={{
-                              background: '#fef2f2',
-                              color: '#b91c1c',
-                              border: '1px solid #fecaca',
-                              padding: '4px 8px',
-                              borderRadius: '4px',
-                              fontSize: '0.75rem',
-                              cursor: 'pointer',
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: '4px',
-                            }}
-                          >
-                            <RotateLeftIcon fontSize="inherit" /> Refund
-                          </button>
-                        )}
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
+        <OrdersSection
+          filterMode={activeSection === 'returns' ? 'returns' : 'all'}
+          onRefundOrder={(orderId, amount) => handleRefund(orderId, amount)}
+          onUpdateStatus={handleStatusChange}
+        />
       )}
 
       {/* 6. CUSTOMERS SECTION */}
       {activeSection === 'customers' && (
-        <div className={styles.card}>
-          <div className={styles.header}>
-            <div className={styles.titleArea}>
-              <h2 className={styles.title}>Registered Boutique Patrons</h2>
-              <span className={styles.subTitle}>Customer profiles, contact data & purchase history</span>
-            </div>
-          </div>
-          <div className={styles.tableWrap}>
-            <table className={styles.table}>
-              <thead>
-                <tr>
-                  <th>Customer Name</th>
-                  <th>Email</th>
-                  <th>Phone</th>
-                  <th>Total Orders</th>
-                  <th>Total Spent</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td style={{ fontWeight: 600 }}>Abhishek Sharma</td>
-                  <td>merchandise.rehas@gmail.com</td>
-                  <td>+91 98765 43210</td>
-                  <td>3 orders</td>
-                  <td style={{ fontWeight: 700, color: 'var(--primary)' }}>₹4,497</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
+        <CustomersSection />
       )}
 
       {/* 7. COUPONS SECTION */}

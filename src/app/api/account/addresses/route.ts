@@ -58,6 +58,25 @@ export async function POST(req: Request) {
   }
 }
 
+export async function PATCH(req: Request) {
+  const userId = await getUserId();
+  if (!userId) return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+
+  try {
+    const { id, isDefault } = await req.json();
+    if (!id) return NextResponse.json({ error: 'Address ID is required' }, { status: 400 });
+
+    if (isDefault) {
+      await prisma.address.updateMany({ where: { userId }, data: { isDefault: false } });
+      await prisma.address.updateMany({ where: { id: String(id), userId }, data: { isDefault: true } });
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message || 'Could not update address' }, { status: 500 });
+  }
+}
+
 export async function DELETE(req: Request) {
   const userId = await getUserId();
   if (!userId) return NextResponse.json({ error: 'Authentication required' }, { status: 401 });

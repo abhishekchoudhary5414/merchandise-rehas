@@ -7,6 +7,7 @@ import AnnouncementBar from '@/components/announcement-bar/AnnouncementBar';
 import Navbar from '@/components/navbar/Navbar';
 import Footer from '@/components/footer/Footer';
 import WhatsAppFloat from '@/components/whatsapp/WhatsAppFloat';
+import BreadcrumbNav from '@/components/common/BreadcrumbNav';
 import { formatINR } from '@/lib/india-localization';
 import styles from './WishlistPage.module.css';
 
@@ -29,6 +30,8 @@ export default function WishlistPage() {
     const next = items.filter((it) => it.id !== id);
     setItems(next);
     localStorage.setItem('rehas_wishlist', JSON.stringify(next));
+    window.dispatchEvent(new Event('rehas_wishlist_updated'));
+    window.dispatchEvent(new Event('storage'));
   }
 
   function moveToCart(item: any) {
@@ -61,6 +64,12 @@ export default function WishlistPage() {
       <Navbar />
 
       <main className={styles.main}>
+        <BreadcrumbNav
+          items={[{ label: 'My Wishlist' }]}
+          showBackButton={true}
+          backLabel="Back"
+        />
+
         <div className={styles.pageHeader}>
           <div>
             <h1 className={styles.heading}>My Wishlist</h1>

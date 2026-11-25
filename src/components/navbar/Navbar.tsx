@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { 
   Search, 
   ShoppingBag, 
@@ -15,7 +15,8 @@ import {
   ChevronRight,
   Phone,
   Mail,
-  ShieldCheck
+  ShieldCheck,
+  ArrowRight
 } from 'lucide-react';
 import siteConfig from '@/data/site-config.json';
 import styles from './Navbar.module.css';
@@ -26,16 +27,24 @@ interface NavbarProps {
 
 export default function Navbar({ cartCount = 0 }: NavbarProps) {
   const pathname = usePathname();
+  const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [liveCartCount, setLiveCartCount] = useState(cartCount);
+  const [liveWishlistCount, setLiveWishlistCount] = useState(0);
 
+  // Search Bar State
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  // Sync Cart Counter
   useEffect(() => {
     function syncCart() {
       try {
         const items = JSON.parse(localStorage.getItem('rehas_cart') || '[]');
         if (Array.isArray(items)) {
           const total = items.reduce((s: number, it: any) => s + (Number(it.quantity) || 1), 0);
-          setLiveCartCount(total || cartCount);
+          setLiveCartCount(total);
         }
       } catch {
         setLiveCartCount(cartCount);
@@ -50,6 +59,36 @@ export default function Navbar({ cartCount = 0 }: NavbarProps) {
     };
   }, [cartCount]);
 
+  // Sync Wishlist Counter
+  useEffect(() => {
+    function syncWishlist() {
+      try {
+        const items = JSON.parse(localStorage.getItem('rehas_wishlist') || '[]');
+        if (Array.isArray(items)) {
+          setLiveWishlistCount(items.length);
+        }
+      } catch {
+        setLiveWishlistCount(0);
+      }
+    }
+    syncWishlist();
+    window.addEventListener('storage', syncWishlist);
+    window.addEventListener('rehas_wishlist_updated', syncWishlist);
+    return () => {
+      window.removeEventListener('storage', syncWishlist);
+      window.removeEventListener('rehas_wishlist_updated', syncWishlist);
+    };
+  }, []);
+
+  // Auto-focus search input when opened
+  useEffect(() => {
+    if (searchOpen) {
+      setTimeout(() => {
+        searchInputRef.current?.focus();
+      }, 80);
+    }
+  }, [searchOpen]);
+
   // Prevent body scroll when drawer is open
   useEffect(() => {
     if (mobileMenuOpen) {
@@ -61,6 +100,13 @@ export default function Navbar({ cartCount = 0 }: NavbarProps) {
       document.body.style.overflow = '';
     };
   }, [mobileMenuOpen]);
+
+  function handleSearchSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!searchQuery.trim()) return;
+    setSearchOpen(false);
+    router.push(`/shop?search=${encodeURIComponent(searchQuery.trim())}`);
+  }
 
   return (
     <header className={styles.header}>
@@ -121,21 +167,79 @@ export default function Navbar({ cartCount = 0 }: NavbarProps) {
 
         {/* Action Icons */}
         <div className={styles.actions}>
-          <Link href="/shop" className={styles.iconBtn} aria-label="Search bracelets">
+          <button 
+            type="button" 
+            className={styles.iconBtn} 
+            onClick={() => setSearchOpen((prev) => !prev)}
+            aria-label="Search bracelets"
+          >
             <Search size={20} />
-          </Link>
+          </button>
+          
           <Link href="/account" className={styles.iconBtn} aria-label="Account">
             <User size={20} />
           </Link>
-          <Link href="/wishlist" className={styles.iconBtn} aria-label="Wishlist">
+
+          <Link href="/wishlist" className={styles.wishlistBtn} aria-label="Wishlist">
             <Heart size={20} />
+            {liveWishlistCount > 0 && (
+              <span className={styles.wishlistBadge}>{liveWishlistCount}</span>
+            )}
           </Link>
+
           <Link href="/cart" className={styles.cartBtn} aria-label="Shopping Cart">
             <ShoppingBag size={20} />
-            <span className={styles.cartBadge}>{liveCartCount}</span>
+            {liveCartCount > 0 && (
+              <span className={styles.cartBadge}>{liveCartCount}</span>
+            )}
           </Link>
         </div>
       </div>
+
+      {/* Interactive Search Overlay Bar */}
+      {searchOpen && (
+        <div className={styles.searchOverlay}>
+          <div className={styles.searchContainer}>
+            <form onSubmit={handleSearchSubmit} className={styles.searchInputWrap}>
+              <Search size={18} className={styles.searchIconInside} />
+              <input
+                ref={searchInputRef}
+                type="text"
+                placeholder="Search consecrated bracelets, crystal name, intention or zodiac..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className={styles.searchInput}
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  className={styles.searchClearBtn}
+                  onClick={() => setSearchQuery('')}
+                  aria-label="Clear search"
+                >
+                  <X size={16} />
+                </button>
+              )}
+            </form>
+            <button
+              type="button"
+              onClick={handleSearchSubmit}
+              className={styles.searchSubmitBtn}
+            >
+              <span>Search</span>
+              <ArrowRight size={15} />
+            </button>
+            <button
+              type="button"
+              className={styles.searchCloseBtn}
+              onClick={() => setSearchOpen(false)}
+              aria-label="Close search"
+            >
+              <X size={18} />
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Backdrop Overlay when mobile drawer is open */}
       <div 
@@ -178,6 +282,37 @@ export default function Navbar({ cartCount = 0 }: NavbarProps) {
 
         {/* Drawer Scrollable Navigation Links */}
         <div className={styles.drawerBody}>
+          {/* Mobile Search Input */}
+          <form 
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (!searchQuery.trim()) return;
+              setMobileMenuOpen(false);
+              router.push(`/shop?search=${encodeURIComponent(searchQuery.trim())}`);
+            }}
+            style={{ marginBottom: '12px' }}
+          >
+            <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+              <Search size={16} style={{ position: 'absolute', left: '12px', color: 'var(--primary)' }} />
+              <input 
+                type="text" 
+                placeholder="Search sacred bracelets..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                style={{
+                  width: '100%',
+                  height: '40px',
+                  borderRadius: '20px',
+                  border: '1px solid var(--border)',
+                  padding: '0 12px 0 36px',
+                  fontSize: '13px',
+                  outline: 'none',
+                  background: '#FAF5FC'
+                }}
+              />
+            </div>
+          </form>
+
           <nav className={styles.drawerNav}>
             <Link href="/" onClick={() => setMobileMenuOpen(false)} className={styles.drawerNavLink}>
               <span>Home</span>
@@ -216,7 +351,7 @@ export default function Navbar({ cartCount = 0 }: NavbarProps) {
             </Link>
             <Link href="/wishlist" onClick={() => setMobileMenuOpen(false)} className={styles.drawerActionBtn}>
               <Heart size={20} />
-              <span>Wishlist</span>
+              <span>Wishlist ({liveWishlistCount})</span>
             </Link>
             <Link href="/cart" onClick={() => setMobileMenuOpen(false)} className={styles.drawerActionBtn}>
               <ShoppingBag size={20} />
@@ -234,9 +369,9 @@ export default function Navbar({ cartCount = 0 }: NavbarProps) {
               <Mail size={18} />
               <span>support@example.com</span>
             </Link>
-            <Link href="/terms" className={styles.supportLink} onClick={() => setMobileMenuOpen(false)}>
+            <Link href="/shipping-policy" className={styles.supportLink} onClick={() => setMobileMenuOpen(false)}>
               <ShieldCheck size={18} />
-              <span>Terms of Service</span>
+              <span>Shipping Policy</span>
             </Link>
           </div>
         </div>

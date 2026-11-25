@@ -1,0 +1,447 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* Banner / Header */
+.bannerHeader {
+  background: linear-gradient(135deg, rgba(86, 0, 103, 0.06) 0%, rgba(216, 184, 120, 0.08) 100%), #FFFFFF;
+  border: 1px solid rgba(86, 0, 103, 0.12);
+  border-radius: 16px;
+  padding: 24px 28px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 20px;
+  box-shadow: 0 4px 20px rgba(86, 0, 103, 0.03);
+}
+
+.bannerTitleArea {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.vedicTagline {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--secondary);
+}
+
+.mainTitle {
+  font-family: var(--font-serif);
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--primary);
+  margin: 0;
+  line-height: 1.2;
+}
+
+.mainSubtitle {
+  font-size: 13.5px;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.controlsArea {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.searchWrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #FFFFFF;
+  border: 1px solid rgba(86, 0, 103, 0.15);
+  border-radius: 10px;
+  padding: 9px 16px;
+  min-width: 260px;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.02);
+  transition: all 0.2s ease;
+}
+
+.searchWrap:focus-within {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(86, 0, 103, 0.08);
+}
+
+.searchInput {
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 13px;
+  color: var(--text-primary);
+  width: 100%;
+}
+
+.statusFilterSelect {
+  padding: 9px 14px;
+  background: #FFFFFF;
+  border: 1px solid rgba(86, 0, 103, 0.15);
+  border-radius: 10px;
+  font-size: 13px;
+  color: var(--text-primary);
+  font-weight: 600;
+  outline: none;
+  cursor: pointer;
+}
+
+.statusFilterSelect:focus {
+  border-color: var(--primary);
+}
+
+.refreshButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, var(--primary) 0%, #700086 100%);
+  color: #FFFFFF;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 18px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(86, 0, 103, 0.2);
+  transition: all 0.2s ease;
+}
+
+.refreshButton:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(86, 0, 103, 0.3);
+  background: linear-gradient(135deg, #440052 0%, #5B006D 100%);
+}
+
+.refreshButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Quick Metric Pills Row */
+.summaryRow {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 14px;
+}
+
+.summaryPillCard {
+  background: #FFFFFF;
+  border: 1px solid rgba(86, 0, 103, 0.08);
+  border-radius: 14px;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
+}
+
+.summaryPillIcon {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.summaryPillContent {
+  display: flex;
+  flex-direction: column;
+}
+
+.summaryPillLabel {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--text-secondary);
+}
+
+.summaryPillValue {
+  font-size: 19px;
+  font-weight: 800;
+  color: var(--primary);
+  line-height: 1.2;
+}
+
+/* Directory Table Card */
+.tableCard {
+  background: #FFFFFF;
+  border: 1px solid rgba(86, 0, 103, 0.1);
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(86, 0, 103, 0.03);
+  overflow: hidden;
+}
+
+.tableResponsive {
+  overflow-x: auto;
+  width: 100%;
+}
+
+.directoryTable {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 13px;
+}
+
+.directoryTable thead tr {
+  background: #FAF7FB;
+  border-bottom: 2px solid rgba(86, 0, 103, 0.1);
+}
+
+.directoryTable th {
+  padding: 15px 18px;
+  font-size: 11.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--primary);
+  white-space: nowrap;
+}
+
+.directoryTable td {
+  padding: 16px 18px;
+  border-bottom: 1px solid rgba(86, 0, 103, 0.06);
+  vertical-align: middle;
+}
+
+.tableRow {
+  transition: background 0.15s ease;
+}
+
+.tableRow:hover {
+  background: #FAF6FB;
+}
+
+/* Column Specific Styling */
+.orderNumberCell {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.orderNumber {
+  font-family: monospace;
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--primary);
+  background: #FAF5FC;
+  padding: 3px 8px;
+  border-radius: 6px;
+  border: 1px solid rgba(86, 0, 103, 0.12);
+  width: fit-content;
+}
+
+.orderDate {
+  font-size: 11px;
+  color: var(--text-tertiary);
+}
+
+.customerCell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.customerAvatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary) 0%, #7B0E94 100%);
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+.customerInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.customerName {
+  font-weight: 700;
+  color: var(--text-primary);
+  font-size: 13.5px;
+}
+
+.customerPhone {
+  font-size: 11.5px;
+  color: var(--text-secondary);
+}
+
+.locationCell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 12.5px;
+}
+
+.cityText {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.pinText {
+  font-size: 11px;
+  color: var(--text-tertiary);
+}
+
+.amountCell {
+  font-size: 14.5px;
+  font-weight: 800;
+  color: var(--primary);
+}
+
+/* Payment Badges */
+.paymentBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 9px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+
+.paymentPaid {
+  background: #ECFDF5;
+  color: #065F46;
+  border: 1px solid #A7F3D0;
+}
+
+.paymentPending {
+  background: #FFFBEB;
+  color: #92400E;
+  border: 1px solid #FDE68A;
+}
+
+.paymentCancelled {
+  background: #FEF2F2;
+  color: #991B1B;
+  border: 1px solid #FECACA;
+}
+
+/* Fulfillment Selector */
+.fulfillmentSelect {
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(86, 0, 103, 0.18);
+  background: #FFFFFF;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  outline: none;
+  min-width: 140px;
+  transition: all 0.2s ease;
+}
+
+.fulfillmentSelect:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(86, 0, 103, 0.1);
+}
+
+.refundBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  background: #FEF2F2;
+  color: #B91C1C;
+  border: 1px solid #FECACA;
+  border-radius: 6px;
+  font-size: 11.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.refundBtn:hover {
+  background: #FEE2E2;
+  border-color: #F87171;
+}
+
+/* Skeleton Shimmer */
+.skeletonShimmer {
+  background: linear-gradient(90deg, #F5EDF8 0%, #FFFFFF 50%, #F5EDF8 100%);
+  background-size: 200% 100%;
+  animation: skeletonFlow 1.6s infinite ease-in-out;
+  border-radius: 6px;
+}
+
+@keyframes skeletonFlow {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.skelAvatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.skelBox {
+  width: 130px;
+  height: 22px;
+  border-radius: 6px;
+}
+
+.skelPill {
+  width: 80px;
+  height: 22px;
+  border-radius: 6px;
+}
+
+.emptyState {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text-secondary);
+}
+
+.emptyTitle {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--primary);
+  margin-bottom: 6px;
+}
+
+@media (max-width: 768px) {
+  .bannerHeader {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .controlsArea {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .searchWrap {
+    width: 100%;
+  }
+  .refreshButton {
+    width: 100%;
+    justify-content: center;
+  }
+}

@@ -3,6 +3,8 @@ import { cookies } from 'next/headers';
 import jwt from 'jsonwebtoken';
 import { prisma } from '@/lib/prisma';
 
+export const dynamic = 'force-dynamic';
+
 async function getUserId() {
   const cookieStore = await cookies();
   const token = cookieStore.get('customer_token')?.value;
@@ -24,6 +26,7 @@ export async function GET() {
   }
 
   try {
+    // 1. Fetch user profile & addresses with selected fields
     const user = await prisma.user.findUnique({
       where: { id: userId },
       select: {
@@ -33,6 +36,18 @@ export async function GET() {
         phone: true,
         createdAt: true,
         addresses: {
+          select: {
+            id: true,
+            fullName: true,
+            phone: true,
+            flatBuilding: true,
+            streetArea: true,
+            landmark: true,
+            city: true,
+            state: true,
+            pinCode: true,
+            isDefault: true,
+          },
           orderBy: [{ isDefault: 'desc' }, { createdAt: 'desc' }],
         },
       },
@@ -42,14 +57,38 @@ export async function GET() {
       return NextResponse.json({ error: 'Account not found' }, { status: 404 });
     }
 
+    // 2. Fetch recent orders directly by indexed userId & lean fields
     const orders = await prisma.order.findMany({
-      where: { OR: [{ userId }, { customerEmail: user.email }] },
-      include: { items: { include: { product: { select: { name: true, primaryImage: true, slug: true } } } } },
+      where: {
+        OR: [{ userId }, { customerEmail: user.email }],
+      },
+      select: {
+        id: true,
+        orderNumber: true,
+        totalAmount: true,
+        shippingStatus: true,
+        createdAt: true,
+        items: {
+          select: {
+            id: true,
+            quantity: true,
+            product: {
+              select: {
+                name: true,
+                primaryImage: true,
+                slug: true,
+              },
+            },
+          },
+        },
+      },
       orderBy: { createdAt: 'desc' },
-      take: 20,
+      take: 15,
     });
 
-    return NextResponse.json({ user, orders });
+    const response = NextResponse.json({ user, orders });
+    response.headers.set('Cache-Control', 'private, no-cache, no-store, must-revalidate');
+    return response;
   } catch (error: any) {
     return NextResponse.json({ error: error.message || 'Could not load account' }, { status: 500 });
   }

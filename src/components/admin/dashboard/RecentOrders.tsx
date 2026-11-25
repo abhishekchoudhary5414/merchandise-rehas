@@ -19,16 +19,27 @@ interface OrderItem {
   createdAt: string;
 }
 
-export default function RecentOrders({ orders }: { orders: OrderItem[] }) {
+export default function RecentOrders({ orders, onSelectOrders }: { orders: OrderItem[]; onSelectOrders?: () => void }) {
   const displayOrders = orders.slice(0, 5);
 
   return (
     <div className={styles.card}>
       <div className={styles.header}>
         <h3 className={styles.title}>Recent Customer Orders</h3>
-        <Link href="/admin/orders" className={styles.viewAllLink}>
-          View All Orders →
-        </Link>
+        {onSelectOrders ? (
+          <button
+            type="button"
+            onClick={onSelectOrders}
+            className={styles.viewAllLink}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', font: 'inherit' }}
+          >
+            View All Orders →
+          </button>
+        ) : (
+          <span className={styles.viewAllLink}>
+            Total: {orders.length} orders
+          </span>
+        )}
       </div>
 
       {displayOrders.length === 0 ? (

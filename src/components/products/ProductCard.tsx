@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Star, ShoppingCart, Heart, ShieldCheck } from 'lucide-react';
 import styles from './ProductCard.module.css';
@@ -21,6 +21,7 @@ export interface ProductCardProps {
 }
 
 export default function ProductCard({
+  id,
   slug,
   name,
   price,
@@ -32,6 +33,54 @@ export default function ProductCard({
   rulingPlanet,
   inStock,
 }: ProductCardProps) {
+  const [isWishlisted, setIsWishlisted] = useState(false);
+  const [imgSrc, setImgSrc] = useState(primaryImage || '/images/rehas-logo.png');
+
+  useEffect(() => {
+    setImgSrc(primaryImage || '/images/rehas-logo.png');
+  }, [primaryImage]);
+
+  useEffect(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem('rehas_wishlist') || '[]');
+      if (Array.isArray(saved)) {
+        setIsWishlisted(saved.some((item: any) => item.id === id || item.slug === slug));
+      }
+    } catch {
+      // ignore
+    }
+  }, [id, slug]);
+
+  function toggleWishlist(e: React.MouseEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    try {
+      const saved = JSON.parse(localStorage.getItem('rehas_wishlist') || '[]');
+      let updated = [];
+      if (isWishlisted) {
+        updated = saved.filter((item: any) => item.id !== id && item.slug !== slug);
+        setIsWishlisted(false);
+      } else {
+        updated = [
+          ...saved,
+          {
+            id,
+            name,
+            slug,
+            image: imgSrc,
+            price,
+          },
+        ];
+        setIsWishlisted(true);
+      }
+      localStorage.setItem('rehas_wishlist', JSON.stringify(updated));
+      window.dispatchEvent(new Event('rehas_wishlist_updated'));
+      window.dispatchEvent(new Event('storage'));
+    } catch {
+      // ignore
+    }
+  }
+
   const discountPct = compareAtPrice && compareAtPrice > price
     ? Math.round(((compareAtPrice - price) / compareAtPrice) * 100)
     : null;
@@ -40,15 +89,31 @@ export default function ProductCard({
     <div className={styles.card}>
       <div className={styles.imageContainer}>
         <Link href={`/product/${slug}`} className={styles.imageLink}>
-          <img src={primaryImage} alt={name} className={styles.image} />
+          <img
+            src={imgSrc}
+            alt={name}
+            className={styles.image}
+            loading="lazy"
+            referrerPolicy="no-referrer"
+            onError={() => {
+              if (imgSrc !== '/images/rehas-logo.png') {
+                setImgSrc('/images/rehas-logo.png');
+              }
+            }}
+          />
         </Link>
 
         {discountPct && (
           <span className={styles.discountBadge}>SAVE {discountPct}%</span>
         )}
 
-        <button className={styles.wishlistBtn} aria-label="Add to Wishlist">
-          <Heart size={16} />
+        <button
+          className={styles.wishlistBtn}
+          onClick={toggleWishlist}
+          aria-label={isWishlisted ? 'Remove from Wishlist' : 'Add to Wishlist'}
+          style={isWishlisted ? { color: '#E11D48', background: '#FFFFFF' } : {}}
+        >
+          <Heart size={16} fill={isWishlisted ? '#E11D48' : 'none'} />
         </button>
 
         <div className={styles.vedicTag}>

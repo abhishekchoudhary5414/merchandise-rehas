@@ -70,8 +70,7 @@ export default function Footer() {
           <div>
             <h4 className={styles.heading}>Admin & Feeds</h4>
             <ul className={styles.linkList}>
-              <li><Link href="/admin">Store Admin Dashboard</Link></li>
-              <li><Link href="/admin/seo">Advanced SEO Studio</Link></li>
+              <li><Link href="/admin/dashboard">Store Admin Dashboard</Link></li>
               <li><a href="/sitemap.xml" target="_blank">Dynamic XML Sitemap</a></li>
               <li><a href="/api/feeds/google-merchant" target="_blank">Google Merchant Feed</a></li>
               <li><Link href="/#contact">Astrologer Consultation</Link></li>

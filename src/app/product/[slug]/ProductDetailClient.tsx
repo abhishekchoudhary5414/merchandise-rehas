@@ -20,6 +20,7 @@ import {
   X,
 } from 'lucide-react';
 import { formatINR, isValidIndianPinCode } from '@/lib/india-localization';
+import BreadcrumbNav from '@/components/common/BreadcrumbNav';
 import styles from './ProductDetail.module.css';
 
 interface MediaItem {
@@ -168,6 +169,8 @@ export default function ProductDetailClient({
         setActionFeedback('Saved to your Wishlist!');
       }
       localStorage.setItem('rehas_wishlist', JSON.stringify(updated));
+      window.dispatchEvent(new Event('rehas_wishlist_updated'));
+      window.dispatchEvent(new Event('storage'));
       setTimeout(() => setActionFeedback(null), 3500);
     } catch {
       setWishlisted(!wishlisted);
@@ -231,22 +234,18 @@ export default function ProductDetailClient({
 
   return (
     <main className={styles.pageMain}>
-      {/* Breadcrumb */}
-      <nav className={styles.breadcrumb}>
-        <Link href="/" className={styles.breadcrumbLink}>Home</Link>
-        <span>/</span>
-        <Link href="/shop" className={styles.breadcrumbLink}>Shop</Link>
-        {product.category?.name && (
-          <>
-            <span>/</span>
-            <Link href={`/shop?category=${product.category.slug}`} className={styles.breadcrumbLink}>
-              {product.category.name}
-            </Link>
-          </>
-        )}
-        <span>/</span>
-        <span className={styles.breadcrumbCurrent}>{product.name}</span>
-      </nav>
+      {/* Common Reusable Breadcrumb & Back Navigation */}
+      <BreadcrumbNav
+        items={[
+          { label: 'Bracelets', href: '/shop' },
+          ...(product.category?.name
+            ? [{ label: product.category.name, href: `/shop?category=${product.category.slug}` }]
+            : []),
+          { label: product.name },
+        ]}
+        showBackButton={true}
+        backLabel="Back"
+      />
 
       {/* Top 2-Column Showcase */}
       <div className={styles.heroGrid}>

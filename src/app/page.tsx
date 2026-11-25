@@ -7,6 +7,7 @@ import Categories from '@/components/categories/Categories';
 import FeaturedCollections from '@/components/collections/FeaturedCollections';
 import ProductCard from '@/components/products/ProductCard';
 import AboutBrand from '@/components/about/AboutBrand';
+import NewArrivalsSection from '@/components/home/NewArrivalsSection';
 import WhyUs from '@/components/why-us/WhyUs';
 import Testimonials from '@/components/testimonials/Testimonials';
 import InstagramGallery from '@/components/instagram/InstagramGallery';
@@ -17,7 +18,7 @@ import Footer from '@/components/footer/Footer';
 import WhatsAppFloat from '@/components/whatsapp/WhatsAppFloat';
 import { generateOrganizationJsonLd } from '@/lib/seo-helpers';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 60; // Cache and ISR revalidate every 60 seconds for instant response
 
 export default async function HomePage() {
   let categories: any[] = [];
@@ -25,27 +26,47 @@ export default async function HomePage() {
   let newArrivals: any[] = [];
   let blogs: any[] = [];
 
+  const productSelect = {
+    id: true,
+    slug: true,
+    name: true,
+    price: true,
+    compareAtPrice: true,
+    primaryImage: true,
+    rating: true,
+    reviewCount: true,
+    primaryCrystal: true,
+    rulingPlanet: true,
+    inStock: true,
+  };
+
   try {
-    const res = await Promise.all([
-      prisma.category.findMany().catch(() => []),
+    const [cats, bests, news, blogPosts] = await Promise.all([
+      prisma.category.findMany({
+        select: { id: true, name: true, slug: true, imageUrl: true, description: true },
+        take: 8,
+      }).catch(() => []),
       prisma.product.findMany({
         where: { inStock: true, isBestSeller: true },
+        select: productSelect,
         take: 4,
       }).catch(() => []),
       prisma.product.findMany({
         where: { inStock: true },
+        select: productSelect,
         orderBy: { createdAt: 'desc' },
         take: 4,
       }).catch(() => []),
       prisma.blog.findMany({
         where: { published: true },
+        select: { id: true, title: true, slug: true, summary: true, imageUrl: true, createdAt: true },
         take: 2,
       }).catch(() => []),
     ]);
-    categories = res[0];
-    bestSellers = res[1];
-    newArrivals = res[2];
-    blogs = res[3];
+    categories = cats;
+    bestSellers = bests;
+    newArrivals = news;
+    blogs = blogPosts;
   } catch (err) {
     console.error('Database fetch error on HomePage:', err);
   }
@@ -119,37 +140,7 @@ export default async function HomePage() {
         <AboutBrand />
 
         {/* H. New Arrivals */}
-        <section style={{ padding: '80px 24px', background: 'var(--background)' }}>
-          <div style={{ maxWidth: 'var(--container-width)', margin: '0 auto' }}>
-            <div style={{ textAlign: 'center', marginBottom: '45px' }}>
-              <span style={{ fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '2px', color: 'var(--secondary)' }}>
-                Fresh Astrological Energies
-              </span>
-              <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '36px', fontWeight: 800, color: 'var(--primary)', margin: '8px 0 10px' }}>
-                Recently Consecrated Arrivals
-              </h2>
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '28px' }}>
-              {newArrivals.map((prod) => (
-                <ProductCard
-                  key={prod.id}
-                  id={prod.id}
-                  slug={prod.slug}
-                  name={prod.name}
-                  price={prod.price}
-                  compareAtPrice={prod.compareAtPrice}
-                  primaryImage={prod.primaryImage}
-                  rating={prod.rating}
-                  reviewCount={prod.reviewCount}
-                  primaryCrystal={prod.primaryCrystal}
-                  rulingPlanet={prod.rulingPlanet}
-                  inStock={prod.inStock}
-                />
-              ))}
-            </div>
-          </div>
-        </section>
+        <NewArrivalsSection products={newArrivals} />
 
         {/* I. Why Choose Us */}
         <WhyUs />

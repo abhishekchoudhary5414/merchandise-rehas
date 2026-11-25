@@ -38,6 +38,11 @@
   box-sizing: border-box;
 }
 
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 120px;
+}
+
 html, body {
   background-color: #F7F1E8;
   background-color: var(--background);
@@ -50,6 +55,8 @@ html, body {
   width: 100%;
   overflow-x: clip;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 img, picture, video, canvas, svg {

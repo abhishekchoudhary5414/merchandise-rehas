@@ -1,0 +1,130 @@
+.paginationContainer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 20px;
+  background: #FAF7FB;
+  border-top: 1px solid rgba(86, 0, 103, 0.08);
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.exportControls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.exportLabel {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-secondary);
+}
+
+.exportBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: #FFFFFF;
+  border: 1px solid rgba(86, 0, 103, 0.18);
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--primary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.exportBtn:hover {
+  background: #FAF5FC;
+  border-color: var(--primary);
+  transform: translateY(-1px);
+}
+
+.exportXlsx {
+  color: #047857;
+  border-color: #A7F3D0;
+  background: #F0FDF4;
+}
+
+.exportXlsx:hover {
+  background: #DCFCE7;
+  border-color: #059669;
+}
+
+.navControls {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.pageSizeWrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pageSizeLabel {
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.pageSizeSelect {
+  padding: 5px 8px;
+  border-radius: 6px;
+  border: 1px solid rgba(86, 0, 103, 0.2);
+  background: #FFFFFF;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--primary);
+  outline: none;
+  cursor: pointer;
+}
+
+.rangeInfo {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.pageButtons {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.navArrow {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: 1px solid rgba(86, 0, 103, 0.15);
+  background: #FFFFFF;
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.navArrow:hover:not(:disabled) {
+  background: var(--primary);
+  color: #FFFFFF;
+}
+
+.navArrow:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.pageNum {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--primary);
+  padding: 0 4px;
+}

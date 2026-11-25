@@ -8,7 +8,7 @@ import AnnouncementBar from '@/components/announcement-bar/AnnouncementBar';
 import Navbar from '@/components/navbar/Navbar';
 import Footer from '@/components/footer/Footer';
 import WhatsAppFloat from '@/components/whatsapp/WhatsAppFloat';
-
+import BreadcrumbNav from '@/components/common/BreadcrumbNav';
 import { formatINR } from '@/lib/india-localization';
 import styles from './CartPage.module.css';
 
@@ -146,6 +146,12 @@ export default function CartPage() {
       <Navbar />
 
       <main className={styles.main}>
+        <BreadcrumbNav
+          items={[{ label: 'Shopping Cart' }]}
+          showBackButton={true}
+          backLabel="Back"
+        />
+
         <div className={styles.pageHeader}>
           <div>
             <h1 className={styles.heading}>Your Shopping Cart</h1>
