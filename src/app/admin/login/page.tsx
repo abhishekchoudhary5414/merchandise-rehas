@@ -30,7 +30,7 @@ function LoginForm() {
   const [view, setView] = useState<AuthView>('LOGIN');
 
   // Credentials
-  const [email, setEmail] = useState('merchandise.rehas@gmail.com');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
@@ -198,7 +198,7 @@ function LoginForm() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="merchandise.rehas@gmail.com"
+                placeholder="admin@gmail.com"
                 className={styles.inputField}
               />
             </div>
@@ -273,7 +273,7 @@ function LoginForm() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="merchandise.rehas@gmail.com"
+                placeholder="admin@gmail.com"
                 className={styles.inputField}
               />
             </div>
