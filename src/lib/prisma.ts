@@ -5,7 +5,7 @@ const globalForPrisma = globalThis as unknown as {
   prismaVersion?: string;
 };
 
-const SCHEMA_VERSION = '2026-11-25-v3';
+const SCHEMA_VERSION = '2026-11-25-v4-whatsapp-fix';
 
 export const prisma =
   globalForPrisma.prisma && globalForPrisma.prismaVersion === SCHEMA_VERSION

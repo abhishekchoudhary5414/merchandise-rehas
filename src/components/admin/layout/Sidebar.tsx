@@ -22,6 +22,7 @@ import AssessmentIcon from '@mui/icons-material/Assessment';
 import SettingsIcon from '@mui/icons-material/Settings';
 import NotificationsNoneIcon from '@mui/icons-material/NotificationsNone';
 import AccountCircleOutlinedIcon from '@mui/icons-material/AccountCircleOutlined';
+import QuestionAnswerIcon from '@mui/icons-material/QuestionAnswer';
 import LogoutIcon from '@mui/icons-material/Logout';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
@@ -40,6 +41,7 @@ export type DashboardSection =
   | 'orders'
   | 'returns'
   | 'customers'
+  | 'inquiries'
   | 'coupons'
   | 'seo'
   | 'media'
@@ -89,6 +91,7 @@ const navSections: {
     title: 'Customers',
     items: [
       { label: 'Customers', section: 'customers', icon: PeopleIcon },
+      { label: 'Inquiries & Leads', section: 'inquiries', icon: QuestionAnswerIcon },
     ],
   },
   {

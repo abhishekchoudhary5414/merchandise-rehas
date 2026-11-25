@@ -16,12 +16,37 @@ export default function WhatsAppFloat({
 }: WhatsAppFloatProps) {
   const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(prefilledMessage)}`;
 
+  function handleClick() {
+    try {
+      const payload = {
+        source: 'floating_button',
+        pageUrl: typeof window !== 'undefined' ? window.location.href : '',
+        referrer: typeof document !== 'undefined' ? document.referrer : '',
+      };
+
+      if (typeof navigator !== 'undefined' && navigator.sendBeacon) {
+        const blob = new Blob([JSON.stringify(payload)], { type: 'application/json' });
+        navigator.sendBeacon('/api/whatsapp/track', blob);
+      } else {
+        fetch('/api/whatsapp/track', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+          keepalive: true,
+        }).catch(() => {});
+      }
+    } catch {
+      // Non-blocking
+    }
+  }
+
   return (
     <a
       href={whatsappUrl}
       target="_blank"
       rel="noopener noreferrer"
       className={styles.floatBtn}
+      onClick={handleClick}
       aria-label={`Chat with ${siteConfig.brand.name} Astrologer on WhatsApp`}
     >
       <div className={styles.iconCircle}>

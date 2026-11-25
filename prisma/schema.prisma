@@ -322,3 +322,28 @@ model ShippingConfig {
   gstPercentage         Float   @default(18.0)
   serviceablePinCodes   String?
 }
+
+model ContactSubmission {
+  id        String   @id @default(uuid())
+  name      String
+  email     String
+  phone     String?
+  subject   String?
+  message   String
+  status    String   @default("UNREAD") // "UNREAD" | "READ" | "REPLIED"
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@map("contact_submissions")
+}
+
+model WhatsAppClick {
+  id        String   @id @default(uuid())
+  source    String   @default("floating_button") // "floating_button" | "footer" | "product_page" etc.
+  referrer  String?
+  pageUrl   String?
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@map("whatsapp_clicks")
+}

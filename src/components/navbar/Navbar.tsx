@@ -13,7 +13,9 @@ import CloseIcon from '@mui/icons-material/Close';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
+import CircularProgress from '@mui/material/CircularProgress';
 import siteConfig from '@/data/site-config.json';
+import { formatINR } from '@/lib/india-localization';
 import styles from './Navbar.module.css';
 
 interface NavbarProps {
@@ -27,10 +29,44 @@ export default function Navbar({ cartCount = 0 }: NavbarProps) {
   const [liveCartCount, setLiveCartCount] = useState(cartCount);
   const [liveWishlistCount, setLiveWishlistCount] = useState(0);
 
-  // Search Bar State
+  // Search Bar State & Live Instant Results
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const searchDebounceRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Live matching query as user types (no need to press Enter or click search)
+  useEffect(() => {
+    const q = searchQuery.trim();
+    if (!q) {
+      setSearchResults([]);
+      setIsSearching(false);
+      return;
+    }
+
+    setIsSearching(true);
+    if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+
+    searchDebounceRef.current = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/products/search?q=${encodeURIComponent(q)}`);
+        if (res.ok) {
+          const data = await res.json();
+          setSearchResults(data.products || []);
+        }
+      } catch {
+        setSearchResults([]);
+      } finally {
+        setIsSearching(false);
+      }
+    }, 180);
+
+    return () => {
+      if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+    };
+  }, [searchQuery]);
 
   // Sync Cart Counter
   useEffect(() => {
@@ -196,7 +232,7 @@ export default function Navbar({ cartCount = 0 }: NavbarProps) {
         </div>
       </div>
 
-      {/* Interactive Search Overlay Bar */}
+      {/* Interactive Search Overlay Bar with Live Instant Results */}
       {searchOpen && (
         <div className={styles.searchOverlay}>
           <div className={styles.searchContainer}>
@@ -205,11 +241,16 @@ export default function Navbar({ cartCount = 0 }: NavbarProps) {
               <input
                 ref={searchInputRef}
                 type="text"
-                placeholder="Search consecrated bracelets, crystal name, intention or zodiac..."
+                placeholder="Type bracelet name, crystal (e.g. Sulemani, Pyrite), zodiac..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className={styles.searchInput}
               />
+              {isSearching && (
+                <div style={{ position: 'absolute', right: 38, display: 'flex', alignItems: 'center' }}>
+                  <CircularProgress size={16} style={{ color: '#560067' }} />
+                </div>
+              )}
               {searchQuery && (
                 <button
                   type="button"
@@ -226,18 +267,89 @@ export default function Navbar({ cartCount = 0 }: NavbarProps) {
               onClick={handleSearchSubmit}
               className={styles.searchSubmitBtn}
             >
-              <span>Search</span>
+              <span>View All</span>
               <ArrowForwardIcon style={{ fontSize: 16 }} />
             </button>
             <button
               type="button"
               className={styles.searchCloseBtn}
-              onClick={() => setSearchOpen(false)}
+              onClick={() => {
+                setSearchOpen(false);
+                setSearchQuery('');
+              }}
               aria-label="Close search"
             >
               <CloseIcon style={{ fontSize: 20 }} />
             </button>
           </div>
+
+          {/* Instant Matches Dropdown */}
+          {searchQuery.trim().length > 0 && (
+            <div className={styles.searchResultsBox}>
+              <div className={styles.searchHeaderRow}>
+                <span>Matching Sacred Bracelets</span>
+                <span className={styles.searchCountText}>
+                  {isSearching ? 'Searching...' : `${searchResults.length} results`}
+                </span>
+              </div>
+
+              {isSearching ? (
+                <div className={styles.searchStatusBox}>
+                  <CircularProgress size={22} style={{ color: '#560067', marginBottom: 8 }} />
+                  <p>Attuning search query with sacred catalog...</p>
+                </div>
+              ) : searchResults.length > 0 ? (
+                <div>
+                  {searchResults.map((prod) => (
+                    <Link
+                      key={prod.id}
+                      href={`/product/${prod.slug}`}
+                      className={styles.searchItemLink}
+                      onClick={() => {
+                        setSearchOpen(false);
+                        setSearchQuery('');
+                      }}
+                    >
+                      <div className={styles.searchItemLeft}>
+                        <div className={styles.searchThumbWrap}>
+                          <img
+                            src={prod.primaryImage || '/images/default-gem.jpg'}
+                            alt={prod.name}
+                            className={styles.searchThumb}
+                          />
+                        </div>
+                        <div className={styles.searchItemDetails}>
+                          <span className={styles.searchItemName}>{prod.name}</span>
+                          <span className={styles.searchItemCategory}>Consecrated Energy Bracelet</span>
+                        </div>
+                      </div>
+                      <div className={styles.searchItemRight}>
+                        <span className={styles.searchItemPrice}>
+                          {formatINR(prod.price || prod.rootPrice || 499)}
+                        </span>
+                        <ChevronRightIcon className={styles.searchArrow} />
+                      </div>
+                    </Link>
+                  ))}
+                  <Link
+                    href={`/shop?search=${encodeURIComponent(searchQuery.trim())}`}
+                    className={styles.searchViewAllBtn}
+                    onClick={() => {
+                      setSearchOpen(false);
+                      setSearchQuery('');
+                    }}
+                  >
+                    <span>View all matching results in Shop</span>
+                    <ArrowForwardIcon style={{ fontSize: 15 }} />
+                  </Link>
+                </div>
+              ) : (
+                <div className={styles.searchStatusBox}>
+                  <p>No consecrated bracelets matching &ldquo;<strong>{searchQuery}</strong>&rdquo;.</p>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
 
@@ -282,7 +394,7 @@ export default function Navbar({ cartCount = 0 }: NavbarProps) {
 
         {/* Drawer Scrollable Navigation Links */}
         <div className={styles.drawerBody}>
-          {/* Mobile Search Input */}
+          {/* Mobile Search Input with live instant match */}
           <form 
             onSubmit={(e) => {
               e.preventDefault();
@@ -301,7 +413,52 @@ export default function Navbar({ cartCount = 0 }: NavbarProps) {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className={styles.drawerSearchInput}
               />
+              {isSearching && (
+                <CircularProgress size={14} style={{ color: '#560067', marginRight: 8 }} />
+              )}
             </div>
+
+            {/* Mobile Instant Results Dropdown */}
+            {searchQuery.trim().length > 0 && (
+              <div className={styles.drawerResultsBox}>
+                {searchResults.length > 0 ? (
+                  searchResults.map((prod) => (
+                    <Link
+                      key={prod.id}
+                      href={`/product/${prod.slug}`}
+                      className={styles.searchItemLink}
+                      onClick={() => {
+                        setMobileMenuOpen(false);
+                        setSearchQuery('');
+                      }}
+                    >
+                      <div className={styles.searchItemLeft}>
+                        <div className={styles.searchThumbWrap}>
+                          <img
+                            src={prod.primaryImage || '/images/default-gem.jpg'}
+                            alt={prod.name}
+                            className={styles.searchThumb}
+                          />
+                        </div>
+                        <div className={styles.searchItemDetails}>
+                          <span className={styles.searchItemName} style={{ fontSize: 13 }}>
+                            {prod.name}
+                          </span>
+                          <span className={styles.searchItemPrice} style={{ fontSize: 12 }}>
+                            {formatINR(prod.price || prod.rootPrice || 499)}
+                          </span>
+                        </div>
+                      </div>
+                      <ChevronRightIcon style={{ fontSize: 16, color: '#C084FC' }} />
+                    </Link>
+                  ))
+                ) : !isSearching ? (
+                  <div style={{ padding: '12px 14px', fontSize: 12, color: '#6B7280' }}>
+                    No bracelets found for &ldquo;{searchQuery}&rdquo;
+                  </div>
+                ) : null}
+              </div>
+            )}
           </form>
 
           <nav className={styles.drawerNav}>

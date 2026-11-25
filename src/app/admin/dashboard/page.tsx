@@ -24,6 +24,7 @@ import BlogsSection from '@/components/admin/blogs/BlogsSection';
 import AnalyticsSection from '@/components/admin/analytics/AnalyticsSection';
 import SettingsSection from '@/components/admin/settings/SettingsSection';
 import CustomersSection from '@/components/admin/customers/CustomersSection';
+import InquiriesSection from '@/components/admin/inquiries/InquiriesSection';
 import InventorySection from '@/components/admin/inventory/InventorySection';
 import OrdersSection from '@/components/admin/orders/OrdersSection';
 import SectionSkeleton from '@/components/admin/common/SectionSkeleton';
@@ -714,6 +715,11 @@ export default function AdminDashboardMainPage() {
       {/* 6. CUSTOMERS SECTION */}
       {activeSection === 'customers' && (
         <CustomersSection />
+      )}
+
+      {/* 6b. INQUIRIES & WHATSAPP TRACKING SECTION */}
+      {activeSection === 'inquiries' && (
+        <InquiriesSection />
       )}
 
       {/* 7. COUPONS SECTION */}

@@ -12,6 +12,7 @@ import {
   Lock,
 } from 'lucide-react';
 import siteConfig from '@/data/site-config.json';
+import WhatsAppFooterLink from '@/components/whatsapp/WhatsAppFooterLink';
 import styles from './Footer.module.css';
 
 export default function Footer() {
@@ -115,20 +116,14 @@ export default function Footer() {
             <h4 className={styles.heading}>Connect &amp; Support</h4>
             <ul className={styles.linkList}>
               <li>
-                <a
-                  href={`https://wa.me/${rawPhone}?text=Pranam%20REHAS%20Team!%20I%20would%20like%20guidance%20on%20choosing%20the%20right%20energized%20astrology%20crystal%20bracelet.`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ color: '#4ADE80', fontWeight: 700 }}
-                >
+                <WhatsAppFooterLink phone={rawPhone}>
                   Chat on WhatsApp ({phoneNumber})
-                </a>
+                </WhatsAppFooterLink>
               </li>
               <li><Link href="/account">Patron Account &amp; Orders</Link></li>
               <li><Link href="/admin/dashboard">Store Admin Dashboard</Link></li>
               <li><a href="/sitemap.xml" target="_blank">Dynamic XML Sitemap</a></li>
               <li><a href="/llms.txt" target="_blank">AI Index (llms.txt)</a></li>
-              <li><a href="/api/feeds/google-merchant" target="_blank">Google Merchant Feed</a></li>
             </ul>
           </div>
         </div>

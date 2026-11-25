@@ -65,8 +65,26 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
     const where: any = { inStock: true };
 
     if (category) {
-      const cat = await prisma.category.findUnique({ where: { slug: category } });
-      if (cat) where.categoryId = cat.id;
+      const cat = await prisma.category.findFirst({
+        where: {
+          OR: [
+            { slug: category },
+            { name: { contains: category.replace(/-/g, ' '), mode: 'insensitive' } },
+          ],
+        },
+      });
+      if (cat) {
+        where.categoryId = cat.id;
+      } else {
+        // Fallback filter by keyword in product name or description
+        const keyword = category.replace(/-/g, ' ');
+        where.OR = [
+          { name: { contains: keyword, mode: 'insensitive' } },
+          { primaryCrystal: { contains: keyword, mode: 'insensitive' } },
+          { description: { contains: keyword, mode: 'insensitive' } },
+          { shortDescription: { contains: keyword, mode: 'insensitive' } },
+        ];
+      }
     }
     if (mulank) {
       where.mulankNumber = { contains: mulank };
