@@ -29,12 +29,37 @@ export default function CartPage() {
   });
 
   useEffect(() => {
+    let localItems: any[] = [];
     try {
       const saved = JSON.parse(localStorage.getItem('rehas_cart') || '[]');
-      if (Array.isArray(saved)) setItems(saved);
+      if (Array.isArray(saved)) {
+        localItems = saved;
+        setItems(saved);
+      }
     } catch {
       setItems([]);
-    } finally {
+    }
+
+    // Live validation against DB so prices, titles, images, and stock are always 100% current
+    if (localItems.length > 0) {
+      fetch('/api/cart/validate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ items: localItems }),
+      })
+        .then((r) => r.json())
+        .then((data) => {
+          if (data && Array.isArray(data.items)) {
+            setItems(data.items);
+            localStorage.setItem('rehas_cart', JSON.stringify(data.items));
+            window.dispatchEvent(new Event('rehas_cart_updated'));
+          }
+        })
+        .catch(() => {})
+        .finally(() => {
+          setLoaded(true);
+        });
+    } else {
       setLoaded(true);
     }
 
@@ -57,8 +82,6 @@ export default function CartPage() {
       })
       .catch(() => {})
       .finally(() => setAuthChecked(true));
-
-
   }, []);
 
   function getItemPrice(it: any): number {
