@@ -6,6 +6,9 @@ export const metadata: Metadata = {
   title: 'REHAS Sacred Merchandise | Vedic Astrology & Crystal Energy Bracelets',
   description: 'Consecrated natural crystal bracelets tuned to your Kundli, Mulank, and Chakras. Free express doorstep delivery across India with 100% secured payments.',
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'),
+  verification: {
+    google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION || undefined,
+  },
 };
 
 export default function RootLayout({
@@ -13,9 +16,14 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const googleVerification = process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION;
+
   return (
     <html lang="en-IN">
       <head>
+        {googleVerification && (
+          <meta name="google-site-verification" content={googleVerification} />
+        )}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
