@@ -100,6 +100,7 @@ export default function Footer() {
           <div>
             <h4 className={styles.heading}>Customer Sanctuary</h4>
             <ul className={styles.linkList}>
+              <li><Link href="/blog">Vedic Astrology &amp; Articles</Link></li>
               <li><Link href="/track-order">Track Indian Courier Status</Link></li>
               <li><Link href="/shipping-policy">Shipping &amp; Delivery Rates</Link></li>
               <li><Link href="/returns-refunds">7-Day Doorstep Returns</Link></li>

@@ -161,7 +161,12 @@ export default function Navbar({ cartCount = 0 }: NavbarProps) {
           </Link>
           <Link href="/#categories" className={styles.navLink}>Category</Link>
           <Link href="/#about" className={styles.navLink}>About</Link>
-          <Link href="/#blog" className={styles.navLink}>Blogs</Link>
+          <Link
+            href="/blog"
+            className={`${styles.navLink} ${pathname.startsWith('/blog') ? styles.navLinkActive : ''}`}
+          >
+            Blogs
+          </Link>
           <Link href="/#contact" className={styles.navLink}>Contact</Link>
         </nav>
 
@@ -330,7 +335,7 @@ export default function Navbar({ cartCount = 0 }: NavbarProps) {
               <span>About</span>
               <ChevronRight size={16} className={styles.drawerNavChevron} />
             </Link>
-            <Link href="/#blog" onClick={() => setMobileMenuOpen(false)} className={styles.drawerNavLink}>
+            <Link href="/blog" onClick={() => setMobileMenuOpen(false)} className={styles.drawerNavLink}>
               <span>Blogs</span>
               <ChevronRight size={16} className={styles.drawerNavChevron} />
             </Link>
