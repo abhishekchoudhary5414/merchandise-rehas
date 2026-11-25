@@ -49,7 +49,7 @@ function getFooterHtml() {
         © ${new Date().getFullYear()} REHAS Sacred Merchandise. All rights reserved.
       </p>
       <p style="margin: 0; color: #8F8791;">
-        Jaipur Spiritual Atelier • Support: <a href="mailto:${FROM_EMAIL}" style="color: ${PRIMARY_COLOR}; text-decoration: none;">${FROM_EMAIL}</a> • +91 92642 48504
+        Patna Sacred Atelier • REHAS, Chanakya Nagar Road, Agam Kua, Patna, Bihar, India - 800007 • Support: <a href="mailto:${FROM_EMAIL}" style="color: ${PRIMARY_COLOR}; text-decoration: none;">${FROM_EMAIL}</a> • +91 9517973153 (24 Hours)
       </p>
     </div>
   `;
@@ -92,7 +92,7 @@ export async function sendOrderConfirmationEmail({
       ${getHeaderHtml('Order Confirmed & Consecration Initiated')}
       <div style="padding: 32px 28px; color: #292329; line-height: 1.65;">
         <h2 style="color: ${PRIMARY_COLOR}; font-size: 22px; margin-top: 0; font-family: Georgia, serif;">Namaste, ${customerName}!</h2>
-        <p style="font-size: 15px;">Your order has been placed successfully. Our Vedic priests in Jaipur are consecrating your gemstones through authentic <em>Prana-Pratishtha</em> rituals for planetary alignment.</p>
+        <p style="font-size: 15px;">Your order has been placed successfully. Our Vedic priests are consecrating your gemstones through authentic <em>Prana-Pratishtha</em> rituals for planetary alignment.</p>
         
         <div style="background: #FDF9F4; border: 1px solid #EFE4D6; padding: 18px 20px; border-radius: 10px; margin: 24px 0;">
           <p style="margin: 0; font-size: 14.5px;"><strong>Order ID:</strong> <span style="font-family: monospace; color: ${PRIMARY_COLOR};">${orderNumber}</span></p>

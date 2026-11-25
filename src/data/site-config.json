@@ -8,24 +8,24 @@
     "gstin": "08AABCR1234F1Z9"
   },
   "contact": {
-    "phone": "+91 98765 43210",
-    "rawPhone": "919876543210",
-    "whatsappNumber": "919876543210",
+    "phone": "+91 9517973153",
+    "rawPhone": "919517973153",
+    "whatsappNumber": "919517973153",
     "email": "care@rehas.in",
-    "hours": "Mon-Sat 10:00 AM - 7:00 PM IST",
+    "hours": "24 Hours (Daily)",
     "address": {
-      "centerName": "REHAS Spiritual Center",
-      "street": "C-Scheme, Near Ashok Nagar",
-      "city": "Jaipur",
-      "state": "Rajasthan",
-      "pinCode": "302001",
+      "centerName": "REHAS Sacred Center",
+      "street": "Chanakya Nagar Road, Agam Kua",
+      "city": "Patna",
+      "state": "Bihar",
+      "pinCode": "800007",
       "country": "India",
-      "fullAddress": "REHAS Spiritual Center, C-Scheme, Jaipur, Rajasthan 302001, India"
+      "fullAddress": "REHAS, Chanakya Nagar Road, Agam Kua, Patna, Bihar, India - 800007"
     }
   },
   "socials": {
     "instagram": "https://www.instagram.com/rehas.in",
-    "whatsapp": "https://wa.me/919876543210?text=Pranam%20REHAS%20Team!%20I%20would%20like%20guidance%20on%20choosing%20the%20right%20energized%20astrology%20crystal%20bracelet.",
+    "whatsapp": "https://wa.me/919517973153?text=Pranam%20REHAS%20Team!%20I%20would%20like%20guidance%20on%20choosing%20the%20right%20energized%20astrology%20crystal%20bracelet.",
     "website": "https://rehas.in"
   }
 }

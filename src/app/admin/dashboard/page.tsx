@@ -14,7 +14,15 @@ import RecentOrders from '@/components/admin/dashboard/RecentOrders';
 import AccountSection from '@/components/admin/account/AccountSection';
 import NotificationsSection, { ActivityNotification } from '@/components/admin/notifications/NotificationsSection';
 import AddProductSection from '@/components/admin/products/AddProductSection';
+import ProductsListSection from '@/components/admin/products/ProductsListSection';
 import AddCategorySection from '@/components/admin/categories/AddCategorySection';
+import CategoriesListSection from '@/components/admin/categories/CategoriesListSection';
+import CouponsSection from '@/components/admin/coupons/CouponsSection';
+import MediaSection from '@/components/admin/media/MediaSection';
+import SeoSection from '@/components/admin/seo/SeoSection';
+import BlogsSection from '@/components/admin/blogs/BlogsSection';
+import AnalyticsSection from '@/components/admin/analytics/AnalyticsSection';
+import SettingsSection from '@/components/admin/settings/SettingsSection';
 import CustomersSection from '@/components/admin/customers/CustomersSection';
 import InventorySection from '@/components/admin/inventory/InventorySection';
 import OrdersSection from '@/components/admin/orders/OrdersSection';
@@ -602,109 +610,48 @@ export default function AdminDashboardMainPage() {
       )}
 
       {activeSection === 'products' && !showAddProduct && !editingProduct && (
-        <div className={styles.card}>
-          <div className={styles.header}>
-            <div className={styles.titleArea}>
-              <h2 className={styles.title}>Sacred Merchandise Collection</h2>
-              <span className={styles.subTitle}>Manage consecrated merchandise, pricing & inventory</span>
-            </div>
-            <button
-              type="button"
-              onClick={() => {
-                setEditingProduct(null);
-                setShowAddProduct(true);
-              }}
-              className={styles.primaryBtn}
-            >
-              <AddCircleOutlineOutlinedIcon fontSize="small" />
-              <span>Add Product</span>
-            </button>
-          </div>
-
-          <div className={styles.tableWrap}>
-            <table className={styles.table}>
-              <thead>
-                <tr>
-                  <th>SKU</th>
-                  <th>Product Name</th>
-                  <th>Category</th>
-                  <th>Price</th>
-                  <th>Stock</th>
-                  <th>Status</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {products.length === 0 ? (
-                  <tr>
-                    <td colSpan={7} style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-secondary)' }}>
-                      No products found. Create your first product.
-                    </td>
-                  </tr>
-                ) : (
-                  products.map((p) => (
-                    <tr key={p.id}>
-                      <td style={{ fontFamily: 'monospace', fontWeight: 600 }}>{p.sku}</td>
-                      <td style={{ fontWeight: 600 }}>{p.name}</td>
-                      <td>{typeof p.category === 'object' ? p.category?.name : (p.category || 'Astrology')}</td>
-                      <td style={{ fontWeight: 700, color: 'var(--primary)' }}>{formatINR(p.price)}</td>
-                      <td>{p.stockQuantity ?? 0} units</td>
-                      <td>
-                        <span className={`${styles.badge} ${p.stockQuantity > 0 ? styles.badgeActive : styles.badgeDraft}`}>
-                          {p.stockQuantity > 0 ? 'Active' : 'Out of Stock'}
-                        </span>
-                      </td>
-                      <td>
-                        <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
-                          <button
-                            type="button"
-                            onClick={() => setEditingProduct(p)}
-                            style={{
-                              background: 'var(--primary-light)',
-                              color: 'var(--primary)',
-                              border: '1px solid rgba(86, 0, 103, 0.2)',
-                              padding: '4px 10px',
-                              borderRadius: '6px',
-                              fontSize: '0.75rem',
-                              fontWeight: 600,
-                              cursor: 'pointer',
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: '4px',
-                            }}
-                          >
-                            <EditOutlinedIcon fontSize="inherit" />
-                            <span>Edit</span>
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleDeleteProduct(p)}
-                            style={{
-                              background: '#fef2f2',
-                              color: 'var(--danger)',
-                              border: '1px solid #fecaca',
-                              padding: '4px 10px',
-                              borderRadius: '6px',
-                              fontSize: '0.75rem',
-                              fontWeight: 600,
-                              cursor: 'pointer',
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: '4px',
-                            }}
-                          >
-                            <DeleteOutlinedIcon fontSize="inherit" />
-                            <span>Delete</span>
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
+        <ProductsListSection
+          products={products}
+          onAddProduct={() => {
+            setEditingProduct(null);
+            setShowAddProduct(true);
+          }}
+          onEditProduct={(p) => setEditingProduct(p)}
+          onDeleteProduct={handleDeleteProduct}
+          onUpdateProductStock={async (productId, newStock) => {
+            try {
+              const res = await fetch(`/api/admin/products/${productId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ stockQuantity: newStock }),
+              });
+              if (!res.ok) throw new Error('Failed to update stock');
+              const data = await res.json();
+              // Instantly update local state so Total Stock recalculates immediately
+              setProducts((prev) =>
+                prev.map((p) =>
+                  p.id === productId ? { ...p, stockQuantity: newStock, inStock: newStock > 0 } : p
+                )
+              );
+              recordActivity('Stock Updated', `Updated stock for product (${newStock} units available).`, 'system');
+              setPopup({
+                open: true,
+                type: 'success',
+                title: 'Stock Updated',
+                message: `Product stock updated to ${newStock} units. Total available stock has been recalculated.`,
+              });
+              return true;
+            } catch (err: any) {
+              setPopup({
+                open: true,
+                type: 'error',
+                title: 'Stock Update Failed',
+                message: err.message || 'Could not update stock quantity.',
+              });
+              return false;
+            }
+          }}
+        />
       )}
 
       {/* 3B. SEPARATE ADD CATEGORY SECTION */}
@@ -737,112 +684,12 @@ export default function AdminDashboardMainPage() {
       )}
 
       {activeSection === 'categories' && !editingCategory && (
-        <div className={styles.card}>
-          <div className={styles.header}>
-            <div className={styles.titleArea}>
-              <h2 className={styles.title}>Merchandise Categories</h2>
-              <span className={styles.subTitle}>Natural crystal, sacred rudraksha & astrological alignment styles</span>
-            </div>
-            <button
-              type="button"
-              onClick={() => setActiveSection('add-category')}
-              className={styles.primaryBtn}
-            >
-              <CategoryIcon fontSize="small" />
-              <span>Add Category</span>
-            </button>
-          </div>
-          <div className={styles.tableWrap}>
-            <table className={styles.table}>
-              <thead>
-                <tr>
-                  <th>Image</th>
-                  <th>Category Name</th>
-                  <th>Slug</th>
-                  <th>Products</th>
-                  <th>Status</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {categories.length === 0 ? (
-                  <tr>
-                    <td colSpan={6} style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-secondary)' }}>
-                      No categories found.
-                    </td>
-                  </tr>
-                ) : (
-                  categories.map((cat) => (
-                    <tr key={cat.id}>
-                      <td>
-                        <img
-                          src={cat.imageUrl || '/images/rehas-logo.png'}
-                          alt={cat.name}
-                          referrerPolicy="no-referrer"
-                          style={{
-                            width: '38px',
-                            height: '38px',
-                            borderRadius: '6px',
-                            objectFit: 'cover',
-                            border: '1px solid var(--border)',
-                          }}
-                        />
-                      </td>
-                      <td style={{ fontWeight: 600 }}>{cat.name}</td>
-                      <td style={{ fontFamily: 'monospace' }}>{cat.slug}</td>
-                      <td>{cat._count?.products ?? 0} products</td>
-                      <td><span className={`${styles.badge} ${styles.badgeActive}`}>Active</span></td>
-                      <td>
-                        <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
-                          <button
-                            type="button"
-                            onClick={() => setEditingCategory(cat)}
-                            style={{
-                              background: 'var(--primary-light)',
-                              color: 'var(--primary)',
-                              border: '1px solid rgba(86, 0, 103, 0.2)',
-                              padding: '4px 10px',
-                              borderRadius: '6px',
-                              fontSize: '0.75rem',
-                              fontWeight: 600,
-                              cursor: 'pointer',
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: '4px',
-                            }}
-                          >
-                            <EditOutlinedIcon fontSize="inherit" />
-                            <span>Edit</span>
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleDeleteCategory(cat)}
-                            style={{
-                              background: '#fef2f2',
-                              color: 'var(--danger)',
-                              border: '1px solid #fecaca',
-                              padding: '4px 10px',
-                              borderRadius: '6px',
-                              fontSize: '0.75rem',
-                              fontWeight: 600,
-                              cursor: 'pointer',
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: '4px',
-                            }}
-                          >
-                            <DeleteOutlinedIcon fontSize="inherit" />
-                            <span>Delete</span>
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
+        <CategoriesListSection
+          categories={categories}
+          onAddCategory={() => setActiveSection('add-category')}
+          onEditCategory={(cat) => setEditingCategory(cat)}
+          onDeleteCategory={handleDeleteCategory}
+        />
       )}
 
       {/* 4. INVENTORY SECTION */}
@@ -871,238 +718,39 @@ export default function AdminDashboardMainPage() {
 
       {/* 7. COUPONS SECTION */}
       {activeSection === 'coupons' && (
-        <div className={styles.card}>
-          <div className={styles.header}>
-            <div className={styles.titleArea}>
-              <h2 className={styles.title}>Coupons & Promotional Discounts</h2>
-              <span className={styles.subTitle}>
-                Create and manage live discount coupons. Only coupons saved in database are shown below.
-              </span>
-            </div>
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <button
-                type="button"
-                className={styles.secondaryBtn}
-                onClick={fetchCouponsList}
-                disabled={loadingCoupons}
-                title="Refresh coupons from database"
-              >
-                <span>{loadingCoupons ? 'Refreshing...' : 'Refresh'}</span>
-              </button>
-              <button
-                type="button"
-                className={styles.primaryBtn}
-                onClick={() => setShowCouponForm((v) => !v)}
-              >
-                <ConfirmationNumberIcon fontSize="small" />
-                <span>{showCouponForm ? 'Close Form' : 'Create Coupon'}</span>
-              </button>
-            </div>
-          </div>
-
-          {showCouponForm && (
-            <form
-              onSubmit={handleCreateCoupon}
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-                gap: '12px',
-                padding: '16px',
-                marginBottom: '20px',
-                background: 'var(--primary-light)',
-                borderRadius: '12px',
-                border: '1px solid var(--border)',
-              }}
-            >
-              <div>
-                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, marginBottom: '4px' }}>
-                  Coupon Code *
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="WELCOME10"
-                  value={newCoupon.code}
-                  onChange={(e) => setNewCoupon({ ...newCoupon, code: e.target.value.toUpperCase() })}
-                  style={{ width: '100%', padding: '8px 10px', borderRadius: '8px', border: '1px solid var(--border)', background: '#fff', fontFamily: 'monospace', fontWeight: 700 }}
-                />
-              </div>
-              <div>
-                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, marginBottom: '4px' }}>
-                  Discount (%) *
-                </label>
-                <input
-                  type="number"
-                  required
-                  min={1}
-                  max={90}
-                  value={newCoupon.discountPct}
-                  onChange={(e) => setNewCoupon({ ...newCoupon, discountPct: e.target.value })}
-                  style={{ width: '100%', padding: '8px 10px', borderRadius: '8px', border: '1px solid var(--border)', background: '#fff' }}
-                />
-              </div>
-              <div>
-                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, marginBottom: '4px' }}>
-                  Min Order (₹)
-                </label>
-                <input
-                  type="number"
-                  min={0}
-                  value={newCoupon.minOrderValue}
-                  onChange={(e) => setNewCoupon({ ...newCoupon, minOrderValue: e.target.value })}
-                  style={{ width: '100%', padding: '8px 10px', borderRadius: '8px', border: '1px solid var(--border)', background: '#fff' }}
-                />
-              </div>
-              <div>
-                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, marginBottom: '4px' }}>
-                  Max Discount (₹, optional)
-                </label>
-                <input
-                  type="number"
-                  min={0}
-                  placeholder="No cap"
-                  value={newCoupon.maxDiscount}
-                  onChange={(e) => setNewCoupon({ ...newCoupon, maxDiscount: e.target.value })}
-                  style={{ width: '100%', padding: '8px 10px', borderRadius: '8px', border: '1px solid var(--border)', background: '#fff' }}
-                />
-              </div>
-              <div style={{ display: 'flex', alignItems: 'flex-end', gap: '8px' }}>
-                <button type="submit" disabled={savingCoupon} className={styles.primaryBtn} style={{ width: '100%', justifyContent: 'center' }}>
-                  {savingCoupon ? 'Saving...' : 'Save Coupon'}
-                </button>
-              </div>
-            </form>
-          )}
-
-          <div className={styles.tableWrap}>
-            <table className={styles.table}>
-              <thead>
-                <tr>
-                  <th>Code</th>
-                  <th>Discount</th>
-                  <th>Min Order</th>
-                  <th>Max Cap</th>
-                  <th>Status</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {coupons.length === 0 ? (
-                  <tr>
-                    <td colSpan={6} style={{ textAlign: 'center', padding: '24px', color: 'var(--text-secondary)' }}>
-                      No coupons found in database. Click &ldquo;Create Coupon&rdquo; to add one (e.g. WELCOME10 for 10% off).
-                    </td>
-                  </tr>
-                ) : (
-                  coupons.map((c) => (
-                    <tr key={c.id}>
-                      <td style={{ fontFamily: 'monospace', fontWeight: 700, color: 'var(--primary)' }}>{c.code}</td>
-                      <td>{c.discountPct}% OFF</td>
-                      <td>{formatINR(c.minOrderValue)}</td>
-                      <td>{c.maxDiscount ? formatINR(c.maxDiscount) : 'No cap'}</td>
-                      <td>
-                        <button
-                          type="button"
-                          onClick={() => handleToggleCoupon(c)}
-                          style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
-                          title="Click to toggle Active/Inactive"
-                        >
-                          <span className={`${styles.badge} ${c.isActive ? styles.badgeActive : styles.badgePending}`}>
-                            {c.isActive ? 'Active' : 'Inactive'}
-                          </span>
-                        </button>
-                      </td>
-                      <td>
-                        <button
-                          type="button"
-                          onClick={() => handleDeleteCoupon(c)}
-                          style={{
-                            background: 'transparent',
-                            border: '1px solid var(--border)',
-                            borderRadius: '6px',
-                            padding: '4px 10px',
-                            fontSize: '0.75rem',
-                            color: 'var(--danger)',
-                            cursor: 'pointer',
-                            fontWeight: 600,
-                          }}
-                        >
-                          Delete
-                        </button>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
+        <CouponsSection
+          coupons={coupons}
+          loadingCoupons={loadingCoupons}
+          onRefresh={fetchCouponsList}
+          onCreateCoupon={handleCreateCoupon}
+          onToggleCoupon={handleToggleCoupon}
+          onDeleteCoupon={handleDeleteCoupon}
+          showCouponForm={showCouponForm}
+          setShowCouponForm={setShowCouponForm}
+          savingCoupon={savingCoupon}
+          newCoupon={newCoupon}
+          setNewCoupon={setNewCoupon}
+        />
       )}
 
       {/* 8. SEO STUDIO SECTION */}
       {activeSection === 'seo' && (
-        <div className={styles.card}>
-          <div className={styles.header}>
-            <div className={styles.titleArea}>
-              <h2 className={styles.title}>SEO & Social Preview Studio</h2>
-              <span className={styles.subTitle}>Search snippets, meta descriptions & Open Graph previews</span>
-            </div>
-          </div>
-          <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
-            All sacred merchandise products are indexed with automatic canonical URLs and Google Rich Snippet JSON-LD schema.
-          </p>
-        </div>
+        <SeoSection products={products} />
       )}
 
       {/* 9. MEDIA LIBRARY SECTION */}
       {activeSection === 'media' && (
-        <div className={styles.card}>
-          <div className={styles.header}>
-            <div className={styles.titleArea}>
-              <h2 className={styles.title}>Google Drive Media Assets</h2>
-              <span className={styles.subTitle}>Product photography & high-resolution consecrated images</span>
-            </div>
-            <button className={styles.primaryBtn}>
-              <PermMediaIcon fontSize="small" />
-              <span>Upload to Drive</span>
-            </button>
-          </div>
-          <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
-            Connected folder: <strong>REHAS Merchandise Assets</strong> (ID: <code>1ZI4__1WdzC5NvbTN0mfdeH2WOtX-VXLR</code>)
-          </p>
-        </div>
+        <MediaSection />
       )}
 
       {/* 10. BLOGS SECTION */}
       {activeSection === 'blogs' && (
-        <div className={styles.card}>
-          <div className={styles.header}>
-            <div className={styles.titleArea}>
-              <h2 className={styles.title}>Vedic Astrology & Energy Articles</h2>
-              <span className={styles.subTitle}>Spiritual guidance, gemstone energies & astrological alignments</span>
-            </div>
-            <button className={styles.primaryBtn}>
-              <ArticleIcon fontSize="small" />
-              <span>New Article</span>
-            </button>
-          </div>
-          <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
-            Publish consecrated wisdom and care instructions for patrons.
-          </p>
-        </div>
+        <BlogsSection />
       )}
 
       {/* 11. ANALYTICS SECTION */}
       {activeSection === 'analytics' && (
-        <div className={styles.card}>
-          <div className={styles.header}>
-            <div className={styles.titleArea}>
-              <h2 className={styles.title}>Store Sales Analytics</h2>
-              <span className={styles.subTitle}>Live financial turnover, average cart value & fulfillment velocity</span>
-            </div>
-          </div>
-          <RevenueChart data={overviewData?.revenueSeries || []} />
-        </div>
+        <AnalyticsSection overviewData={overviewData} />
       )}
 
       {/* 12. NOTIFICATIONS & ACTIVITY SECTION */}
@@ -1120,70 +768,14 @@ export default function AdminDashboardMainPage() {
         <AccountSection onActivity={recordActivity} />
       )}
 
-      {/* 12. SETTINGS SECTION */}
+      {/* 14. SETTINGS SECTION */}
       {activeSection === 'settings' && (
-        <div className={styles.card} style={{ maxWidth: '640px' }}>
-          <div className={styles.header}>
-            <div className={styles.titleArea}>
-              <h2 className={styles.title}>Indian Shipping & Tax Settings</h2>
-              <span className={styles.subTitle}>Configure delivery fees, free shipping thresholds, GST & COD</span>
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-            <div>
-              <label style={{ fontSize: '0.85rem', fontWeight: 600, display: 'block', marginBottom: '0.35rem' }}>
-                Free Shipping Threshold (INR ₹)
-              </label>
-              <input
-                type="number"
-                value={shippingConfig.freeShippingThreshold}
-                onChange={(e) =>
-                  setShippingConfig({ ...shippingConfig, freeShippingThreshold: parseFloat(e.target.value) || 0 })
-                }
-                style={{ width: '100%', padding: '0.65rem', borderRadius: '8px', border: '1px solid var(--border)' }}
-              />
-            </div>
-
-            <div>
-              <label style={{ fontSize: '0.85rem', fontWeight: 600, display: 'block', marginBottom: '0.35rem' }}>
-                Standard Delivery Fee (INR ₹)
-              </label>
-              <input
-                type="number"
-                value={shippingConfig.flatRate}
-                onChange={(e) =>
-                  setShippingConfig({ ...shippingConfig, flatRate: parseFloat(e.target.value) || 0 })
-                }
-                style={{ width: '100%', padding: '0.65rem', borderRadius: '8px', border: '1px solid var(--border)' }}
-              />
-            </div>
-
-            <div>
-              <label style={{ fontSize: '0.85rem', fontWeight: 600, display: 'block', marginBottom: '0.35rem' }}>
-                GST Rate (%)
-              </label>
-              <input
-                type="number"
-                value={shippingConfig.gstPercentage}
-                onChange={(e) =>
-                  setShippingConfig({ ...shippingConfig, gstPercentage: parseFloat(e.target.value) || 0 })
-                }
-                style={{ width: '100%', padding: '0.65rem', borderRadius: '8px', border: '1px solid var(--border)' }}
-              />
-            </div>
-
-            <button
-              onClick={handleSaveSettings}
-              disabled={savingSettings}
-              className={styles.primaryBtn}
-              style={{ marginTop: '0.5rem', justifyContent: 'center' }}
-            >
-              <SaveOutlinedIcon fontSize="small" />
-              <span>{savingSettings ? 'Saving...' : 'Save Settings'}</span>
-            </button>
-          </div>
-        </div>
+        <SettingsSection
+          shippingConfig={shippingConfig}
+          setShippingConfig={setShippingConfig}
+          savingSettings={savingSettings}
+          onSave={handleSaveSettings}
+        />
       )}
         </>
       )}

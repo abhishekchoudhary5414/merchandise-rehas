@@ -42,7 +42,17 @@ function OrderConfirmedContent() {
               <div className={styles.metaItem}><span>Estimated delivery</span><strong>3–5 business days</strong></div>
             </div>
             <div className={styles.actions}>
-              <Link href={`/track-order?orderNumber=${orderNumber}`} className={styles.primaryAction}><Truck size={17} /> Track your order</Link>
+              <Link
+                href="/track-order"
+                onClick={() => {
+                  if (typeof window !== 'undefined') {
+                    sessionStorage.setItem('rehas_track_order_num', orderNumber);
+                  }
+                }}
+                className={styles.primaryAction}
+              >
+                <Truck size={17} /> Track your order
+              </Link>
               <Link href="/shop" className={styles.secondaryAction}>Continue shopping <ArrowRight size={16} /></Link>
             </div>
           </section>

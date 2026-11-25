@@ -32,7 +32,7 @@ export default function ReturnsRefundsPage() {
           <section className="space-y-2 border-t border-stone-100 pt-4">
             <h2 className="text-base font-bold text-amber-950">2. Refund Processing via Razorpay</h2>
             <p>
-              Once your returned item is received and inspected at our Jaipur warehouse:
+              Once your returned item is received and inspected at our REHAS center (Chanakya Nagar Road, Agam Kua, Patna, Bihar - 800007):
             </p>
             <ul className="list-disc list-inside space-y-1 text-stone-600 pl-2">
               <li>Prepaid Razorpay orders are refunded to the original payment source (UPI account, Credit/Debit Card) within 3-5 business days.</li>

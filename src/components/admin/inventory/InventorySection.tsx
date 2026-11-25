@@ -78,32 +78,44 @@ export default function InventorySection({ onEditProduct }: InventorySectionProp
 
   // Export handlers
   function handleExportCSV() {
-    const headers = ['SKU', 'Item Name', 'Category', 'Active Sold', 'Available Stock', 'Cancelled Orders', 'Refunded Units', 'Status'];
-    const rows = filtered.map((p) => [
-      p.sku,
-      p.name,
-      p.category?.name || 'Vedic Bracelets',
-      p.soldCount || 0,
-      p.stockQuantity ?? 0,
-      p.cancelledCount || 0,
-      p.refundedCount || 0,
-      (p.stockQuantity ?? 0) === 0 ? 'Out of Stock' : (p.stockQuantity ?? 0) <= 5 ? 'Low Stock' : 'In Stock',
-    ]);
+    const headers = ['SKU', 'Item Name', 'Category', 'Total Stock', 'Sold', 'Available Stock', 'Cancel', 'Refund', 'Stock Status'];
+    const rows = filtered.map((p) => {
+      const available = p.stockQuantity ?? 0;
+      const sold = p.soldCount || 0;
+      const totalStock = available + sold;
+      return [
+        p.sku,
+        p.name,
+        p.category?.name || 'Vedic Bracelets',
+        totalStock,
+        sold,
+        available,
+        p.cancelledCount || 0,
+        p.refundedCount || 0,
+        available === 0 ? 'Out of Stock' : available <= 5 ? 'Low Stock' : 'In Stock',
+      ];
+    });
     exportToCSV('REHAS_Inventory_Report', headers, rows);
   }
 
   function handleExportXLSX() {
-    const headers = ['SKU', 'Item Name', 'Category', 'Active Sold', 'Available Stock', 'Cancelled Orders', 'Refunded Units', 'Status'];
-    const rows = filtered.map((p) => [
-      p.sku,
-      p.name,
-      p.category?.name || 'Vedic Bracelets',
-      p.soldCount || 0,
-      p.stockQuantity ?? 0,
-      p.cancelledCount || 0,
-      p.refundedCount || 0,
-      (p.stockQuantity ?? 0) === 0 ? 'Out of Stock' : (p.stockQuantity ?? 0) <= 5 ? 'Low Stock' : 'In Stock',
-    ]);
+    const headers = ['SKU', 'Item Name', 'Category', 'Total Stock', 'Sold', 'Available Stock', 'Cancel', 'Refund', 'Stock Status'];
+    const rows = filtered.map((p) => {
+      const available = p.stockQuantity ?? 0;
+      const sold = p.soldCount || 0;
+      const totalStock = available + sold;
+      return [
+        p.sku,
+        p.name,
+        p.category?.name || 'Vedic Bracelets',
+        totalStock,
+        sold,
+        available,
+        p.cancelledCount || 0,
+        p.refundedCount || 0,
+        available === 0 ? 'Out of Stock' : available <= 5 ? 'Low Stock' : 'In Stock',
+      ];
+    });
     exportToXLSX('REHAS_Inventory_Report', headers, rows);
   }
 
@@ -246,6 +258,7 @@ export default function InventorySection({ onEditProduct }: InventorySectionProp
               <tr>
                 <th>Item SKU</th>
                 <th>Merchandise Item</th>
+                <th>Total Stock</th>
                 <th>Sold</th>
                 <th>Available Stock</th>
                 <th>Cancel</th>
@@ -264,13 +277,14 @@ export default function InventorySection({ onEditProduct }: InventorySectionProp
                     <td><div className={`${styles.skelPill} ${styles.skeletonShimmer}`} /></td>
                     <td><div className={`${styles.skelPill} ${styles.skeletonShimmer}`} /></td>
                     <td><div className={`${styles.skelPill} ${styles.skeletonShimmer}`} /></td>
+                    <td><div className={`${styles.skelPill} ${styles.skeletonShimmer}`} /></td>
                     <td><div className={`${styles.skelPill} ${styles.skeletonShimmer}`} style={{ width: '90px' }} /></td>
                     <td><div className={`${styles.skelPill} ${styles.skeletonShimmer}`} style={{ width: '60px' }} /></td>
                   </tr>
                 ))
               ) : pagedProducts.length === 0 ? (
                 <tr>
-                  <td colSpan={8}>
+                  <td colSpan={9}>
                     <div className={styles.emptyState}>
                       <div className={styles.emptyTitle}>No Inventory Items Found</div>
                       <p>No products match your current search.</p>
@@ -279,9 +293,11 @@ export default function InventorySection({ onEditProduct }: InventorySectionProp
                 </tr>
               ) : (
                 pagedProducts.map((p) => {
-                  const qty = p.stockQuantity ?? 0;
-                  const statusLabel = qty === 0 ? 'Out of Stock' : qty <= 5 ? 'Low Stock' : 'In Stock';
-                  const statusClass = qty === 0 ? styles.stockOut : qty <= 5 ? styles.stockLow : styles.stockIn;
+                  const availableQty = p.stockQuantity ?? 0;
+                  const soldQty = p.soldCount || 0;
+                  const totalProductStock = availableQty + soldQty;
+                  const statusLabel = availableQty === 0 ? 'Out of Stock' : availableQty <= 5 ? 'Low Stock' : 'In Stock';
+                  const statusClass = availableQty === 0 ? styles.stockOut : availableQty <= 5 ? styles.stockLow : styles.stockIn;
 
                   return (
                     <tr key={p.id} className={styles.tableRow}>
@@ -306,6 +322,13 @@ export default function InventorySection({ onEditProduct }: InventorySectionProp
                         </div>
                       </td>
 
+                      {/* Total Stock Column */}
+                      <td>
+                        <strong style={{ fontSize: '13.5px', color: '#0F172A', fontWeight: 800 }}>
+                          {totalProductStock} units
+                        </strong>
+                      </td>
+
                       {/* Sold Count */}
                       <td>
                         <strong style={{ color: p.soldCount > 0 ? '#059669' : 'var(--text-tertiary)' }}>
@@ -315,8 +338,8 @@ export default function InventorySection({ onEditProduct }: InventorySectionProp
 
                       {/* Available Stock */}
                       <td>
-                        <strong style={{ fontSize: '14px', color: 'var(--primary)' }}>
-                          {qty} units
+                        <strong style={{ fontSize: '14px', color: 'var(--primary)', fontWeight: 800 }}>
+                          {availableQty} units
                         </strong>
                       </td>
 

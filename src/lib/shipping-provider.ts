@@ -136,7 +136,7 @@ export class IndianLogisticsProvider {
         },
         {
           date: 'Nov 24, 2026 09:15',
-          location: 'Warehouse Jaipur, RJ',
+          location: 'REHAS Fulfillment Patna, BR',
           activity: 'Item packed and manifest created',
         },
       ],

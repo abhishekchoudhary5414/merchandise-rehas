@@ -764,7 +764,12 @@ export default function AccountPage() {
                                 </div>
                                 <Link 
                                   className={styles.track} 
-                                  href={`/track-order?orderNumber=${order.orderNumber}`}
+                                  href="/track-order"
+                                  onClick={() => {
+                                    if (typeof window !== 'undefined') {
+                                      sessionStorage.setItem('rehas_track_order_num', order.orderNumber);
+                                    }
+                                  }}
                                 >
                                   <span>Track Order</span>
                                   <ArrowRight size={14} />

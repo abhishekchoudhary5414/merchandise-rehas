@@ -64,6 +64,12 @@ export function exportToXLSX(filename: string, headers: string[], rows: (string 
   downloadBlob(blob, filename.endsWith('.xls') || filename.endsWith('.xlsx') ? filename : `${filename}.xls`);
 }
 
+export const exportToCsv = (headers: string[], rows: (string | number)[][], filename: string) =>
+  exportToCSV(filename, headers, rows);
+
+export const exportToExcel = (headers: string[], rows: (string | number)[][], filename: string) =>
+  exportToXLSX(filename, headers, rows);
+
 function escapeHtml(str: string) {
   return str
     .replace(/&/g, '&amp;')

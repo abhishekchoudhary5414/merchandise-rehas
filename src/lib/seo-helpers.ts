@@ -128,7 +128,7 @@ export function generateOrganizationJsonLd() {
     sameAs: ['https://www.instagram.com/rehas.in'],
     contactPoint: {
       '@type': 'ContactPoint',
-      telephone: '+91-9876543210',
+      telephone: '+91-9517973153',
       contactType: 'customer service',
       areaServed: 'IN',
       availableLanguage: ['en', 'hi'],

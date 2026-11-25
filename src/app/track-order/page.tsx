@@ -38,7 +38,7 @@ function TrackOrderContent() {
   const initialOrder = searchParams.get('orderNumber') || '';
   const [orderQuery, setOrderQuery] = useState(initialOrder);
   const [order, setOrder] = useState<any>(null);
-  const [loading, setLoading] = useState(Boolean(initialOrder));
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   async function loadOrder(orderNumber: string) {
@@ -63,13 +63,30 @@ function TrackOrderContent() {
   }
 
   useEffect(() => {
-    if (initialOrder) loadOrder(initialOrder);
+    // Check either query param or sessionStorage
+    let targetOrder = initialOrder;
+    if (!targetOrder && typeof window !== 'undefined') {
+      const stored = sessionStorage.getItem('rehas_track_order_num');
+      if (stored) {
+        targetOrder = stored;
+        sessionStorage.removeItem('rehas_track_order_num');
+      }
+    }
+
+    if (targetOrder) {
+      setOrderQuery(targetOrder);
+      loadOrder(targetOrder);
+      // Clean up url in address bar to stay cleanly at /track-order without query params
+      if (typeof window !== 'undefined' && window.location.search) {
+        window.history.replaceState({}, '', '/track-order');
+      }
+    }
   }, [initialOrder]);
 
   function handleSearch(e: React.FormEvent) {
     e.preventDefault();
     if (!orderQuery.trim()) return;
-    router.push(`/track-order?orderNumber=${encodeURIComponent(orderQuery.trim())}`);
+    loadOrder(orderQuery.trim());
   }
 
   const trackingStatus = (order?.shippingStatus || '').toUpperCase();
