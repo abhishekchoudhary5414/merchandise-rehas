@@ -288,12 +288,7 @@ export default function InquiriesSection() {
         </button>
       </div>
 
-      {loading ? (
-        <div className={styles.loadingState}>
-          <div className={styles.spinner}></div>
-          <p>Loading inquiries & analytics...</p>
-        </div>
-      ) : activeTab === 'contact' ? (
+      {activeTab === 'contact' ? (
         /* CONTACT SUBMISSIONS TABULAR VIEW */
         <div className={styles.sectionContent}>
           {/* Controls Bar */}
@@ -331,7 +326,7 @@ export default function InquiriesSection() {
             </div>
           </div>
 
-          {filteredSubmissions.length === 0 ? (
+          {!loading && filteredSubmissions.length === 0 ? (
             <div className={styles.emptyState}>
               <EmailOutlinedIcon style={{ fontSize: 48, color: '#9CA3AF' }} />
               <h3>No Contact Submissions Found</h3>
@@ -353,7 +348,43 @@ export default function InquiriesSection() {
                     </tr>
                   </thead>
                   <tbody>
-                    {paginatedSubmissions.map((sub) => (
+                    {loading ? (
+                      // Shimmer Skeleton Rows for Inquiries
+                      [1, 2, 3, 4, 5].map((n) => (
+                        <tr key={`skel-inq-${n}`}>
+                          <td>
+                            <div className={`${styles.skelBox} ${styles.skeletonShimmer}`} style={{ width: '110px' }} />
+                          </td>
+                          <td>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                              <div className={`${styles.skelBox} ${styles.skeletonShimmer}`} style={{ width: '140px', height: '14px' }} />
+                              <div className={`${styles.skelBox} ${styles.skeletonShimmer}`} style={{ width: '180px', height: '11px' }} />
+                            </div>
+                          </td>
+                          <td>
+                            <div className={`${styles.skelBox} ${styles.skeletonShimmer}`} style={{ width: '100px' }} />
+                          </td>
+                          <td>
+                            <div className={`${styles.skelBox} ${styles.skeletonShimmer}`} style={{ width: '120px' }} />
+                          </td>
+                          <td>
+                            <div className={`${styles.skelBox} ${styles.skeletonShimmer}`} style={{ width: '180px' }} />
+                          </td>
+                          <td>
+                            <div className={`${styles.skelPill} ${styles.skeletonShimmer}`} style={{ width: '90px' }} />
+                          </td>
+                          <td>
+                            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '6px' }}>
+                              <div className={`${styles.skelBox} ${styles.skeletonShimmer}`} style={{ width: '28px', height: '28px', borderRadius: '6px' }} />
+                              <div className={`${styles.skelBox} ${styles.skeletonShimmer}`} style={{ width: '28px', height: '28px', borderRadius: '6px' }} />
+                              <div className={`${styles.skelBox} ${styles.skeletonShimmer}`} style={{ width: '28px', height: '28px', borderRadius: '6px' }} />
+                              <div className={`${styles.skelBox} ${styles.skeletonShimmer}`} style={{ width: '28px', height: '28px', borderRadius: '6px' }} />
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      paginatedSubmissions.map((sub) => (
                       <tr
                         key={sub.id}
                         className={sub.status === 'UNREAD' ? styles.rowUnread : ''}
@@ -482,7 +513,8 @@ export default function InquiriesSection() {
                           </div>
                         </td>
                       </tr>
-                    ))}
+                    ))
+                  )}
                   </tbody>
                 </table>
               </div>
@@ -531,7 +563,7 @@ export default function InquiriesSection() {
               <span className={styles.totalBadge}>{whatsappClicks.length} Recorded Events</span>
             </div>
 
-            {whatsappClicks.length === 0 ? (
+            {!loading && whatsappClicks.length === 0 ? (
               <div className={styles.emptyState}>
                 <WhatsAppIcon style={{ fontSize: 48, color: '#16A34A' }} />
                 <h3>No WhatsApp Clicks Recorded Yet</h3>
@@ -550,7 +582,26 @@ export default function InquiriesSection() {
                       </tr>
                     </thead>
                     <tbody>
-                      {paginatedWhatsAppClicks.map((click) => (
+                      {loading ? (
+                        // Shimmer Skeleton Rows for WhatsApp Clicks
+                        [1, 2, 3, 4, 5].map((n) => (
+                          <tr key={`skel-wa-${n}`}>
+                            <td>
+                              <div className={`${styles.skelBox} ${styles.skeletonShimmer}`} style={{ width: '110px' }} />
+                            </td>
+                            <td>
+                              <div className={`${styles.skelPill} ${styles.skeletonShimmer}`} style={{ width: '140px' }} />
+                            </td>
+                            <td>
+                              <div className={`${styles.skelBox} ${styles.skeletonShimmer}`} style={{ width: '220px' }} />
+                            </td>
+                            <td>
+                              <div className={`${styles.skelBox} ${styles.skeletonShimmer}`} style={{ width: '160px' }} />
+                            </td>
+                          </tr>
+                        ))
+                      ) : (
+                        paginatedWhatsAppClicks.map((click) => (
                         <tr key={click.id}>
                           <td>
                             <span className={styles.timeCell}>
@@ -594,7 +645,8 @@ export default function InquiriesSection() {
                             )}
                           </td>
                         </tr>
-                      ))}
+                      ))
+                    )}
                     </tbody>
                   </table>
                 </div>
