@@ -831,14 +831,14 @@ export default function AccountPage() {
                                     <span>Track Order</span>
                                     <ArrowRight size={14} />
                                   </Link>
-                                  {order.shippingStatus === 'DELIVERED' && item.product?.id && (
+                                  {String(order.shippingStatus).toUpperCase() === 'DELIVERED' && (item.product?.id || item.productId) && (
                                     <button
                                       type="button"
                                       onClick={() => {
                                         setReviewModalProduct({
-                                          productId: item.product.id,
-                                          productName: item.product.name,
-                                          productImage: item.product.primaryImage,
+                                          productId: item.product?.id || item.productId,
+                                          productName: item.product?.name || 'Delivered Sacred Bracelet',
+                                          productImage: item.product?.primaryImage,
                                           orderNumber: order.orderNumber,
                                         });
                                         setReviewRating(5);
@@ -852,13 +852,14 @@ export default function AccountPage() {
                                         color: '#560067',
                                         background: '#FAF5FC',
                                         border: '1.5px solid #560067',
-                                        padding: '5px 12px',
-                                        borderRadius: '6px',
+                                        padding: '6px 14px',
+                                        borderRadius: '7px',
                                         cursor: 'pointer',
                                         display: 'inline-flex',
                                         alignItems: 'center',
-                                        gap: '5px',
-                                        transition: 'all 0.2s',
+                                        gap: '6px',
+                                        transition: 'all 0.2s ease',
+                                        boxShadow: '0 2px 6px rgba(86, 0, 103, 0.08)',
                                       }}
                                     >
                                       <Star size={13} fill="#D8B878" color="#D8B878" />

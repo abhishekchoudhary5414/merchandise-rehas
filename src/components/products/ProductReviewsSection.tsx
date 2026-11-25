@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { 
   Star, 
   CheckCircle2, 
@@ -8,8 +9,7 @@ import {
   User, 
   Calendar, 
   Sparkles, 
-  ShieldCheck, 
-  Send
+  ShieldCheck
 } from 'lucide-react';
 import styles from './ProductReviewsSection.module.css';
 
@@ -38,16 +38,6 @@ export default function ProductReviewsSection({
   const [reviews, setReviews] = useState<ReviewItem[]>(initialReviews);
   const [rating, setRating] = useState<number>(initialRating);
   const [reviewCount, setReviewCount] = useState<number>(initialReviewCount);
-  const [loading, setLoading] = useState(false);
-
-  // Form state
-  const [showReviewForm, setShowReviewForm] = useState(false);
-  const [formRating, setFormRating] = useState(5);
-  const [formAuthor, setFormAuthor] = useState('');
-  const [formOrderNum, setFormOrderNum] = useState('');
-  const [formComment, setFormComment] = useState('');
-  const [submitting, setSubmitting] = useState(false);
-  const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   // Fetch latest reviews on mount
   useEffect(() => {
@@ -69,49 +59,6 @@ export default function ProductReviewsSection({
     fetchReviews();
   }, [productId]);
 
-  async function handleReviewSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!formComment.trim()) return;
-
-    setSubmitting(true);
-    setFeedback(null);
-
-    try {
-      const res = await fetch('/api/reviews', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          productId,
-          rating: formRating,
-          author: formAuthor.trim() || undefined,
-          orderNumber: formOrderNum.trim() || undefined,
-          comment: formComment.trim(),
-        }),
-      });
-
-      const data = await res.json();
-      if (!res.ok) {
-        setFeedback({ type: 'error', text: data.error || 'Failed to submit review' });
-      } else {
-        setFeedback({ 
-          type: 'success', 
-          text: data.review.verified
-            ? 'Dhanyawad! Your verified purchase review has been published.'
-            : 'Dhanyawad! Your patron review has been recorded.'
-        });
-        setReviews((prev) => [data.review, ...prev]);
-        setRating(data.averageRating);
-        setReviewCount(data.reviewCount);
-        setFormComment('');
-        setShowReviewForm(false);
-      }
-    } catch {
-      setFeedback({ type: 'error', text: 'An unexpected error occurred while posting review.' });
-    } finally {
-      setSubmitting(false);
-    }
-  }
-
   return (
     <section className={styles.reviewsContainer} id="customer-reviews">
       <div className={styles.reviewsHeader}>
@@ -122,15 +69,6 @@ export default function ProductReviewsSection({
           </div>
           <h2 className={styles.mainTitle}>Customer Reviews &amp; Ratings</h2>
         </div>
-
-        <button
-          type="button"
-          onClick={() => setShowReviewForm((v) => !v)}
-          className={styles.writeReviewBtn}
-        >
-          <MessageSquare size={16} />
-          <span>{showReviewForm ? 'Close Form' : 'Write a Review'}</span>
-        </button>
       </div>
 
       {/* Ratings Overview Bar */}
@@ -163,94 +101,6 @@ export default function ProductReviewsSection({
           </div>
         </div>
       </div>
-
-      {feedback && (
-        <div className={feedback.type === 'success' ? styles.feedbackSuccess : styles.feedbackError}>
-          {feedback.text}
-        </div>
-      )}
-
-      {/* Review Submission Form */}
-      {showReviewForm && (
-        <form onSubmit={handleReviewSubmit} className={styles.reviewForm}>
-          <h3 className={styles.formTitle}>Share Your Sacred Experience</h3>
-          <p className={styles.formSub}>
-            Delivered customers receive an authentic <em>&quot;Verified Patron&quot;</em> badge upon review.
-          </p>
-
-          {/* Star selector */}
-          <div className={styles.formGroup}>
-            <label className={styles.label}>Your Rating</label>
-            <div className={styles.starSelectRow}>
-              {[1, 2, 3, 4, 5].map((s) => (
-                <button
-                  type="button"
-                  key={s}
-                  onClick={() => setFormRating(s)}
-                  className={styles.starPickBtn}
-                >
-                  <Star
-                    size={22}
-                    fill={s <= formRating ? '#E59819' : 'none'}
-                    color={s <= formRating ? '#E59819' : '#9CA3AF'}
-                  />
-                </button>
-              ))}
-              <span className={styles.ratingWord}>
-                {formRating === 5 && 'Outstanding & Consecrated'}
-                {formRating === 4 && 'Very Good Energy'}
-                {formRating === 3 && 'Average'}
-                {formRating <= 2 && 'Needs Improvement'}
-              </span>
-            </div>
-          </div>
-
-          <div className={styles.formGrid}>
-            <div className={styles.formGroup}>
-              <label className={styles.label}>Your Name</label>
-              <input
-                type="text"
-                placeholder="e.g. Ramesh Sharma"
-                value={formAuthor}
-                onChange={(e) => setFormAuthor(e.target.value)}
-                className={styles.input}
-              />
-            </div>
-
-            <div className={styles.formGroup}>
-              <label className={styles.label}>Delivered Order Number (Optional for Verification)</label>
-              <input
-                type="text"
-                placeholder="e.g. REHAS-IN-047829-492"
-                value={formOrderNum}
-                onChange={(e) => setFormOrderNum(e.target.value)}
-                className={styles.input}
-              />
-            </div>
-          </div>
-
-          <div className={styles.formGroup}>
-            <label className={styles.label}>Your Review &amp; Spiritual Experience</label>
-            <textarea
-              rows={4}
-              placeholder="How did wearing this energized bracelet impact your mental clarity, focus, or peace? Share details about the craftsmanship and Vedic consecration."
-              value={formComment}
-              onChange={(e) => setFormComment(e.target.value)}
-              className={styles.textarea}
-              required
-            />
-          </div>
-
-          <button
-            type="submit"
-            disabled={submitting}
-            className={styles.submitReviewBtn}
-          >
-            <Send size={15} />
-            <span>{submitting ? 'Publishing...' : 'Submit Review'}</span>
-          </button>
-        </form>
-      )}
 
       {/* Review List */}
       <div className={styles.reviewsList}>

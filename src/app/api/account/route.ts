@@ -71,9 +71,11 @@ export async function GET() {
         items: {
           select: {
             id: true,
+            productId: true,
             quantity: true,
             product: {
               select: {
+                id: true,
                 name: true,
                 primaryImage: true,
                 slug: true,

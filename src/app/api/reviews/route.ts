@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { cookies } from 'next/headers';
 import jwt from 'jsonwebtoken';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'rehas-secret-key-2026';
+const JWT_SECRET = process.env.JWT_SECRET || 'rehas_admin_jwt_secret_token_2026';
 
 export async function GET(req: Request) {
   try {
@@ -49,7 +49,7 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   try {
     const cookieStore = await cookies();
-    const token = cookieStore.get('token')?.value;
+    const token = cookieStore.get('customer_token')?.value || cookieStore.get('token')?.value;
 
     let verifiedUserId: string | undefined = undefined;
     let authorName: string = 'Verified Customer';
@@ -57,8 +57,9 @@ export async function POST(req: Request) {
     if (token) {
       try {
         const decoded = jwt.verify(token, JWT_SECRET) as any;
-        if (decoded?.id && typeof decoded.id === 'string') {
-          const user = await prisma.user.findUnique({ where: { id: decoded.id } });
+        const lookupId = decoded?.userId || decoded?.id;
+        if (lookupId && typeof lookupId === 'string') {
+          const user = await prisma.user.findUnique({ where: { id: lookupId } });
           if (user) {
             verifiedUserId = user.id;
             authorName = user.name;
@@ -82,10 +83,11 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Comment must be at least 5 characters long' }, { status: 400 });
     }
 
-    // Check if customer had an order delivered for this product
-    let isDeliveredPurchase = false;
+    // STRICT VERIFICATION: ONLY customers who received and had the product DELIVERED can review
+    let deliveredOrder: any = null;
+
     if (verifiedUserId) {
-      const deliveredOrder = await prisma.order.findFirst({
+      deliveredOrder = await prisma.order.findFirst({
         where: {
           userId: verifiedUserId,
           shippingStatus: 'DELIVERED',
@@ -94,28 +96,38 @@ export async function POST(req: Request) {
           },
         },
       });
-      if (deliveredOrder) isDeliveredPurchase = true;
-    } else if (orderNumber) {
-      const deliveredOrder = await prisma.order.findFirst({
+    }
+
+    if (!deliveredOrder && orderNumber) {
+      deliveredOrder = await prisma.order.findFirst({
         where: {
-          orderNumber: String(orderNumber),
+          orderNumber: String(orderNumber).trim(),
           shippingStatus: 'DELIVERED',
           items: {
             some: { productId },
           },
         },
       });
-      if (deliveredOrder) isDeliveredPurchase = true;
+    }
+
+    if (!deliveredOrder) {
+      return NextResponse.json(
+        {
+          error:
+            'Only verified patrons who have purchased and received this product (order marked as DELIVERED) can submit a review. Please access your delivered order under Account Management to write a review.',
+        },
+        { status: 403 }
+      );
     }
 
     const newReview = await prisma.review.create({
       data: {
         productId,
-        ...(verifiedUserId ? { userId: verifiedUserId } : {}),
-        author: author || authorName,
+        userId: verifiedUserId || deliveredOrder.userId || null,
+        author: author || authorName || deliveredOrder.customerName || 'Verified Patron',
         rating: Number(rating),
         comment: comment.trim(),
-        verified: isDeliveredPurchase,
+        verified: true,
       },
     });
 

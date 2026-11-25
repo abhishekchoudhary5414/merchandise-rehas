@@ -35,11 +35,20 @@ type Mode = 'LOGIN' | 'REGISTER' | 'FORGOT_REQUEST' | 'FORGOT_VERIFY';
 function CustomerAuthPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirectTo = '/account';
   const tabParam = searchParams.get('tab');
+  const redirectParam = searchParams.get('redirect');
   const [mode, setMode] = useState<Mode>(tabParam === 'register' ? 'REGISTER' : 'LOGIN');
   const [user, setUser] = useState<any>(null);
   const [checkingSession, setCheckingSession] = useState(true);
+
+  // Determine safe redirect destination
+  // If user is registering, always land directly on their /account page unless explicitly specified
+  const getRedirectUrl = (currentMode: Mode) => {
+    if (redirectParam && redirectParam.startsWith('/')) {
+      return redirectParam;
+    }
+    return '/account';
+  };
 
   // Form fields
   const [name, setName] = useState('');
@@ -107,7 +116,7 @@ function CustomerAuthPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Sign in failed');
       setUser(data.user);
-      router.push(redirectTo);
+      router.push(getRedirectUrl('LOGIN'));
       router.refresh();
     } catch (err: any) {
       setError(err.message);
@@ -199,7 +208,8 @@ function CustomerAuthPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Registration failed');
       setUser(data.user);
-      router.push(redirectTo);
+      // Successful account creation ALWAYS redirects to /account
+      router.push('/account');
       router.refresh();
     } catch (err: any) {
       setError(err.message);
