@@ -191,7 +191,7 @@ export default function Navbar({ cartCount = 0 }: NavbarProps) {
             Bracelets
           </Link>
           <Link href="/#categories" className={styles.navLink}>Category</Link>
-          <Link href="/#about" className={styles.navLink}>About</Link>
+          <Link href="/about" className={styles.navLink}>About</Link>
           <Link
             href="/blog"
             className={`${styles.navLink} ${pathname.startsWith('/blog') ? styles.navLinkActive : ''}`}
@@ -474,7 +474,7 @@ export default function Navbar({ cartCount = 0 }: NavbarProps) {
               <span>Category</span>
               <ChevronRightIcon style={{ fontSize: 18 }} className={styles.drawerNavChevron} />
             </Link>
-            <Link href="/#about" onClick={() => setMobileMenuOpen(false)} className={styles.drawerNavLink}>
+            <Link href="/about" onClick={() => setMobileMenuOpen(false)} className={`${styles.drawerNavLink} ${pathname === '/about' ? styles.drawerNavActive : ''}`}>
               <span>About</span>
               <ChevronRightIcon style={{ fontSize: 18 }} className={styles.drawerNavChevron} />
             </Link>

@@ -101,6 +101,7 @@ export default function Footer() {
           <div>
             <h4 className={styles.heading}>Customer Sanctuary</h4>
             <ul className={styles.linkList}>
+              <li><Link href="/about">About Sacred REHAS</Link></li>
               <li><Link href="/blog">Vedic Astrology &amp; Articles</Link></li>
               <li><Link href="/partners">Partners &amp; Canonical Network</Link></li>
               <li><Link href="/track-order">Track Indian Courier Status</Link></li>
