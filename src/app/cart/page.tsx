@@ -3,7 +3,11 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ShoppingBag, Trash2, Heart, Truck, ArrowRight } from 'lucide-react';
+import ShoppingBagIcon from '@mui/icons-material/ShoppingBag';
+import DeleteOutlinedIcon from '@mui/icons-material/DeleteOutlined';
+import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
+import LocalShippingOutlinedIcon from '@mui/icons-material/LocalShippingOutlined';
+import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import AnnouncementBar from '@/components/announcement-bar/AnnouncementBar';
 import Navbar from '@/components/navbar/Navbar';
 import Footer from '@/components/footer/Footer';
@@ -57,6 +61,10 @@ export default function CartPage() {
 
   }, []);
 
+  function getItemPrice(it: any): number {
+    return Number(it.unitPrice ?? it.price ?? 0);
+  }
+
   function syncCart(next: any[]) {
     setItems(next);
     localStorage.setItem('rehas_cart', JSON.stringify(next));
@@ -94,7 +102,7 @@ export default function CartPage() {
     removeItem(idx);
   }
 
-  const subtotal = items.reduce((s, it) => s + (it.unitPrice || 0) * (it.quantity || 1), 0);
+  const subtotal = items.reduce((s, it) => s + getItemPrice(it) * (Number(it.quantity) || 1), 0);
   const shippingFee =
     subtotal === 0 || subtotal >= shippingConfig.freeShippingThreshold
       ? 0
@@ -155,9 +163,13 @@ export default function CartPage() {
         <div className={styles.pageHeader}>
           <div>
             <h1 className={styles.heading}>Your Shopping Cart</h1>
-            <p className={styles.subHeading}>
-              {items.length} {items.length === 1 ? 'item' : 'items'} ready for sacred dispatch
-            </p>
+            {!loaded ? (
+              <div className={`${styles.skeletonLineSm} ${styles.skeletonPulse}`} style={{ width: '160px', marginTop: '6px' }} />
+            ) : (
+              <p className={styles.subHeading}>
+                {items.length} {items.length === 1 ? 'item' : 'items'} ready for sacred dispatch
+              </p>
+            )}
           </div>
           <Link href="/shop" style={{ color: 'var(--primary)', fontWeight: 700, fontSize: '0.875rem', textDecoration: 'none' }}>
             ← Continue Shopping
@@ -165,10 +177,39 @@ export default function CartPage() {
         </div>
 
         {!loaded ? (
-          <div className={styles.emptyBox}>Loading your cart...</div>
+          <div className={styles.cartGrid}>
+            <div className={styles.itemsCol}>
+              {[1, 2].map((k) => (
+                <div key={k} className={styles.skeletonCard}>
+                  <div className={`${styles.skeletonImg} ${styles.skeletonPulse}`} />
+                  <div className={styles.skeletonBody}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div className={`${styles.skeletonLineLg} ${styles.skeletonPulse}`} style={{ width: '55%' }} />
+                      <div className={`${styles.skeletonLineLg} ${styles.skeletonPulse}`} style={{ width: '25%' }} />
+                    </div>
+                    <div className={`${styles.skeletonLineSm} ${styles.skeletonPulse}`} style={{ width: '40%' }} />
+                    <div style={{ display: 'flex', gap: '10px', marginTop: '12px' }}>
+                      <div className={`${styles.skeletonLine} ${styles.skeletonPulse}`} style={{ width: '80px', height: '32px' }} />
+                      <div className={`${styles.skeletonLine} ${styles.skeletonPulse}`} style={{ width: '100px', height: '32px' }} />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <aside className={styles.summaryCard}>
+              <div className={`${styles.skeletonLineLg} ${styles.skeletonPulse}`} style={{ width: '45%', marginBottom: '18px' }} />
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginBottom: '20px' }}>
+                <div className={`${styles.skeletonLine} ${styles.skeletonPulse}`} style={{ width: '100%' }} />
+                <div className={`${styles.skeletonLine} ${styles.skeletonPulse}`} style={{ width: '100%' }} />
+                <div className={`${styles.skeletonLine} ${styles.skeletonPulse}`} style={{ width: '80%' }} />
+              </div>
+              <div className={`${styles.skeletonLine} ${styles.skeletonPulse}`} style={{ width: '100%', height: '44px', borderRadius: '10px' }} />
+            </aside>
+          </div>
         ) : items.length === 0 ? (
           <div className={styles.emptyBox}>
-            <ShoppingBag size={44} color="var(--primary)" style={{ opacity: 0.7 }} />
+            <ShoppingBagIcon style={{ fontSize: 48, color: 'var(--primary)', opacity: 0.7 }} />
             <h2 style={{ fontFamily: 'var(--font-serif)', color: 'var(--primary)', margin: 0 }}>
               Your REHAS Cart is Empty
             </h2>
@@ -196,7 +237,7 @@ export default function CartPage() {
                         {item.name}
                       </Link>
                       <span className={styles.itemPrice}>
-                        {formatINR((item.unitPrice || 0) * (item.quantity || 1))}
+                        {formatINR(getItemPrice(item) * (Number(item.quantity) || 1))}
                       </span>
                     </div>
 
@@ -229,14 +270,14 @@ export default function CartPage() {
                           onClick={() => moveToWishlist(idx)}
                           className={styles.actionLink}
                         >
-                          <Heart size={14} /> Save to Wishlist
+                          <FavoriteBorderIcon style={{ fontSize: 16 }} /> Save to Wishlist
                         </button>
                         <button
                           type="button"
                           onClick={() => removeItem(idx)}
                           className={`${styles.actionLink} ${styles.removeLink}`}
                         >
-                          <Trash2 size={14} /> Remove
+                          <DeleteOutlinedIcon style={{ fontSize: 16 }} /> Remove
                         </button>
                       </div>
                     </div>
@@ -261,7 +302,7 @@ export default function CartPage() {
               </div>
 
               <div className={styles.freeShipNote}>
-                <Truck size={16} />
+                <LocalShippingOutlinedIcon style={{ fontSize: 18 }} />
                 <span>
                   {subtotal >= shippingConfig.freeShippingThreshold
                     ? 'Yay! Your order qualifies for FREE Delivery across India.'
@@ -276,7 +317,7 @@ export default function CartPage() {
 
               <button type="button" onClick={handleCheckout} className={styles.checkoutBtn}>
                 <span>{user ? 'Proceed to Checkout' : 'Login to Checkout'}</span>
-                <ArrowRight size={18} />
+                <ArrowForwardIcon style={{ fontSize: 18 }} />
               </button>
             </aside>
           </div>

@@ -73,6 +73,35 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
     console.warn('Shipping settings fetch note:', err);
   }
 
+  // Fetch Related Products ("You May Also Like") in the same category
+  let relatedProducts: any[] = [];
+  try {
+    relatedProducts = await prisma.product.findMany({
+      where: {
+        categoryId: product.categoryId,
+        id: { not: product.id },
+        inStock: true,
+      },
+      take: 4,
+      orderBy: { isBestSeller: 'desc' },
+      select: {
+        id: true,
+        slug: true,
+        name: true,
+        price: true,
+        compareAtPrice: true,
+        primaryImage: true,
+        rating: true,
+        reviewCount: true,
+        primaryCrystal: true,
+        rulingPlanet: true,
+        isBestSeller: true,
+      },
+    });
+  } catch (err) {
+    console.warn('Related products fetch error:', err);
+  }
+
   const productJsonLd = generateProductJsonLd(enrichedProduct as any);
   const breadcrumbJsonLd = generateBreadcrumbJsonLd([
     { name: 'Home', url: SITE_URL },
@@ -106,6 +135,7 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
       <ProductDetailClient
         product={JSON.parse(JSON.stringify(enrichedProduct))}
         freeShippingThreshold={freeShippingThreshold}
+        relatedProducts={JSON.parse(JSON.stringify(relatedProducts))}
       />
 
       <Footer />

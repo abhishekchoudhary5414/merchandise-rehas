@@ -4,20 +4,15 @@ import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
-import { 
-  Search, 
-  ShoppingBag, 
-  Heart, 
-  User, 
-  Menu, 
-  X, 
-  Sparkles,
-  ChevronRight,
-  Phone,
-  Mail,
-  ShieldCheck,
-  ArrowRight
-} from 'lucide-react';
+import SearchIcon from '@mui/icons-material/Search';
+import ShoppingBagOutlinedIcon from '@mui/icons-material/ShoppingBagOutlined';
+import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
+import PersonOutlineIcon from '@mui/icons-material/PersonOutlined';
+import MenuIcon from '@mui/icons-material/Menu';
+import CloseIcon from '@mui/icons-material/Close';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
+import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import siteConfig from '@/data/site-config.json';
 import styles from './Navbar.module.css';
 
@@ -119,7 +114,7 @@ export default function Navbar({ cartCount = 0 }: NavbarProps) {
             aria-label="Open navigation menu"
             type="button"
           >
-            <Menu size={24} />
+            <MenuIcon style={{ fontSize: 28 }} />
           </button>
 
           {/* Brand Logo with Emblem */}
@@ -137,7 +132,7 @@ export default function Navbar({ cartCount = 0 }: NavbarProps) {
             <div className={styles.logoTextCol}>
               <span className={styles.logoMain}>{siteConfig.brand.name}</span>
               <span className={styles.logoSub}>
-                <Sparkles size={10} className={styles.sparkle} /> {siteConfig.brand.subName}
+                <AutoAwesomeIcon style={{ fontSize: 11 }} className={styles.sparkle} /> {siteConfig.brand.subName}
               </span>
             </div>
           </Link>
@@ -178,22 +173,22 @@ export default function Navbar({ cartCount = 0 }: NavbarProps) {
             onClick={() => setSearchOpen((prev) => !prev)}
             aria-label="Search bracelets"
           >
-            <Search size={20} />
+            <SearchIcon style={{ fontSize: 22 }} />
           </button>
           
           <Link href="/account" className={styles.iconBtn} aria-label="Account">
-            <User size={20} />
+            <PersonOutlineIcon style={{ fontSize: 24 }} />
           </Link>
 
           <Link href="/wishlist" className={styles.wishlistBtn} aria-label="Wishlist">
-            <Heart size={20} />
+            <FavoriteBorderIcon style={{ fontSize: 22 }} />
             {liveWishlistCount > 0 && (
               <span className={styles.wishlistBadge}>{liveWishlistCount}</span>
             )}
           </Link>
 
           <Link href="/cart" className={styles.cartBtn} aria-label="Shopping Cart">
-            <ShoppingBag size={20} />
+            <ShoppingBagOutlinedIcon style={{ fontSize: 22 }} />
             {liveCartCount > 0 && (
               <span className={styles.cartBadge}>{liveCartCount}</span>
             )}
@@ -206,7 +201,7 @@ export default function Navbar({ cartCount = 0 }: NavbarProps) {
         <div className={styles.searchOverlay}>
           <div className={styles.searchContainer}>
             <form onSubmit={handleSearchSubmit} className={styles.searchInputWrap}>
-              <Search size={18} className={styles.searchIconInside} />
+              <SearchIcon style={{ fontSize: 20 }} className={styles.searchIconInside} />
               <input
                 ref={searchInputRef}
                 type="text"
@@ -222,7 +217,7 @@ export default function Navbar({ cartCount = 0 }: NavbarProps) {
                   onClick={() => setSearchQuery('')}
                   aria-label="Clear search"
                 >
-                  <X size={16} />
+                  <CloseIcon style={{ fontSize: 16 }} />
                 </button>
               )}
             </form>
@@ -232,7 +227,7 @@ export default function Navbar({ cartCount = 0 }: NavbarProps) {
               className={styles.searchSubmitBtn}
             >
               <span>Search</span>
-              <ArrowRight size={15} />
+              <ArrowForwardIcon style={{ fontSize: 16 }} />
             </button>
             <button
               type="button"
@@ -240,7 +235,7 @@ export default function Navbar({ cartCount = 0 }: NavbarProps) {
               onClick={() => setSearchOpen(false)}
               aria-label="Close search"
             >
-              <X size={18} />
+              <CloseIcon style={{ fontSize: 20 }} />
             </button>
           </div>
         </div>
@@ -272,7 +267,7 @@ export default function Navbar({ cartCount = 0 }: NavbarProps) {
             </div>
             <div>
               <span className={styles.drawerBrandName}>{siteConfig.brand.name}</span>
-              <span className={styles.drawerBrandSub}>{siteConfig.brand.tagline}</span>
+              <span className={styles.drawerBrandSub}>{siteConfig.brand.subName}</span>
             </div>
           </div>
           <button 
@@ -281,7 +276,7 @@ export default function Navbar({ cartCount = 0 }: NavbarProps) {
             onClick={() => setMobileMenuOpen(false)}
             aria-label="Close navigation menu"
           >
-            <X size={22} />
+            <CloseIcon style={{ fontSize: 22 }} />
           </button>
         </div>
 
@@ -295,53 +290,44 @@ export default function Navbar({ cartCount = 0 }: NavbarProps) {
               setMobileMenuOpen(false);
               router.push(`/shop?search=${encodeURIComponent(searchQuery.trim())}`);
             }}
-            style={{ marginBottom: '12px' }}
+            className={styles.drawerSearchForm}
           >
-            <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-              <Search size={16} style={{ position: 'absolute', left: '12px', color: 'var(--primary)' }} />
+            <div className={styles.drawerSearchWrap}>
+              <SearchIcon style={{ fontSize: 18 }} className={styles.drawerSearchIcon} />
               <input 
                 type="text" 
                 placeholder="Search sacred bracelets..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                style={{
-                  width: '100%',
-                  height: '40px',
-                  borderRadius: '20px',
-                  border: '1px solid var(--border)',
-                  padding: '0 12px 0 36px',
-                  fontSize: '13px',
-                  outline: 'none',
-                  background: '#FAF5FC'
-                }}
+                className={styles.drawerSearchInput}
               />
             </div>
           </form>
 
           <nav className={styles.drawerNav}>
-            <Link href="/" onClick={() => setMobileMenuOpen(false)} className={styles.drawerNavLink}>
+            <Link href="/" onClick={() => setMobileMenuOpen(false)} className={`${styles.drawerNavLink} ${pathname === '/' ? styles.drawerNavActive : ''}`}>
               <span>Home</span>
-              <ChevronRight size={16} className={styles.drawerNavChevron} />
+              <ChevronRightIcon style={{ fontSize: 18 }} className={styles.drawerNavChevron} />
             </Link>
-            <Link href="/shop" onClick={() => setMobileMenuOpen(false)} className={styles.drawerNavLink}>
+            <Link href="/shop" onClick={() => setMobileMenuOpen(false)} className={`${styles.drawerNavLink} ${pathname.startsWith('/shop') ? styles.drawerNavActive : ''}`}>
               <span>Bracelets</span>
-              <ChevronRight size={16} className={styles.drawerNavChevron} />
+              <ChevronRightIcon style={{ fontSize: 18 }} className={styles.drawerNavChevron} />
             </Link>
             <Link href="/#categories" onClick={() => setMobileMenuOpen(false)} className={styles.drawerNavLink}>
               <span>Category</span>
-              <ChevronRight size={16} className={styles.drawerNavChevron} />
+              <ChevronRightIcon style={{ fontSize: 18 }} className={styles.drawerNavChevron} />
             </Link>
             <Link href="/#about" onClick={() => setMobileMenuOpen(false)} className={styles.drawerNavLink}>
               <span>About</span>
-              <ChevronRight size={16} className={styles.drawerNavChevron} />
+              <ChevronRightIcon style={{ fontSize: 18 }} className={styles.drawerNavChevron} />
             </Link>
-            <Link href="/blog" onClick={() => setMobileMenuOpen(false)} className={styles.drawerNavLink}>
+            <Link href="/blog" onClick={() => setMobileMenuOpen(false)} className={`${styles.drawerNavLink} ${pathname.startsWith('/blog') ? styles.drawerNavActive : ''}`}>
               <span>Blogs</span>
-              <ChevronRight size={16} className={styles.drawerNavChevron} />
+              <ChevronRightIcon style={{ fontSize: 18 }} className={styles.drawerNavChevron} />
             </Link>
             <Link href="/#contact" onClick={() => setMobileMenuOpen(false)} className={styles.drawerNavLink}>
               <span>Contact</span>
-              <ChevronRight size={16} className={styles.drawerNavChevron} />
+              <ChevronRightIcon style={{ fontSize: 18 }} className={styles.drawerNavChevron} />
             </Link>
           </nav>
 
@@ -351,32 +337,22 @@ export default function Navbar({ cartCount = 0 }: NavbarProps) {
           {/* Drawer Actions: Account, Cart, Wishlist */}
           <div className={styles.drawerActions}>
             <Link href="/account" onClick={() => setMobileMenuOpen(false)} className={styles.drawerActionBtn}>
-              <User size={20} />
-              <span>Account</span>
+              <PersonOutlineIcon style={{ fontSize: 22 }} />
+              <span>My Account</span>
             </Link>
             <Link href="/wishlist" onClick={() => setMobileMenuOpen(false)} className={styles.drawerActionBtn}>
-              <Heart size={20} />
-              <span>Wishlist ({liveWishlistCount})</span>
+              <FavoriteBorderIcon style={{ fontSize: 22 }} />
+              <span>Wishlist</span>
+              {liveWishlistCount > 0 && (
+                <span className={styles.drawerActionBadge}>{liveWishlistCount}</span>
+              )}
             </Link>
             <Link href="/cart" onClick={() => setMobileMenuOpen(false)} className={styles.drawerActionBtn}>
-              <ShoppingBag size={20} />
-              <span>Cart ({liveCartCount})</span>
-            </Link>
-          </div>
-
-          {/* Support Links */}
-          <div className={styles.supportLinks}>
-            <Link href="tel:+1234567890" className={styles.supportLink} onClick={() => setMobileMenuOpen(false)}>
-              <Phone size={18} />
-              <span>+1 (234) 567-890</span>
-            </Link>
-            <Link href="mailto:support@example.com" className={styles.supportLink} onClick={() => setMobileMenuOpen(false)}>
-              <Mail size={18} />
-              <span>support@example.com</span>
-            </Link>
-            <Link href="/shipping-policy" className={styles.supportLink} onClick={() => setMobileMenuOpen(false)}>
-              <ShieldCheck size={18} />
-              <span>Shipping Policy</span>
+              <ShoppingBagOutlinedIcon style={{ fontSize: 22 }} />
+              <span>Cart</span>
+              {liveCartCount > 0 && (
+                <span className={styles.drawerActionBadge}>{liveCartCount}</span>
+              )}
             </Link>
           </div>
         </div>

@@ -101,6 +101,7 @@ export default function Footer() {
             <h4 className={styles.heading}>Customer Sanctuary</h4>
             <ul className={styles.linkList}>
               <li><Link href="/blog">Vedic Astrology &amp; Articles</Link></li>
+              <li><Link href="/partners">Partners &amp; Canonical Network</Link></li>
               <li><Link href="/track-order">Track Indian Courier Status</Link></li>
               <li><Link href="/shipping-policy">Shipping &amp; Delivery Rates</Link></li>
               <li><Link href="/returns-refunds">7-Day Doorstep Returns</Link></li>
@@ -126,6 +127,7 @@ export default function Footer() {
               <li><Link href="/account">Patron Account &amp; Orders</Link></li>
               <li><Link href="/admin/dashboard">Store Admin Dashboard</Link></li>
               <li><a href="/sitemap.xml" target="_blank">Dynamic XML Sitemap</a></li>
+              <li><a href="/llms.txt" target="_blank">AI Index (llms.txt)</a></li>
               <li><a href="/api/feeds/google-merchant" target="_blank">Google Merchant Feed</a></li>
             </ul>
           </div>

@@ -529,3 +529,29 @@
   max-width: 540px;
   margin: 40px auto;
 }
+
+/* Skeleton Loading Animation */
+.skeletonPulse {
+  background: linear-gradient(90deg, #ede5ed 25%, #f5eff5 50%, #ede5ed 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.6s infinite ease-in-out;
+  border-radius: 8px;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.skeletonLine {
+  height: 16px;
+  border-radius: 6px;
+}
+
+.skeletonBox {
+  border-radius: var(--radius-md);
+}

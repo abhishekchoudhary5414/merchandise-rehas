@@ -43,7 +43,7 @@ export default async function HomePage() {
   try {
     const [cats, bests, news, blogPosts] = await Promise.all([
       prisma.category.findMany({
-        select: { id: true, name: true, slug: true, imageUrl: true, description: true },
+        select: { id: true, name: true, slug: true, imageUrl: true, driveFileId: true, description: true },
         take: 8,
       }).catch(() => []),
       prisma.product.findMany({

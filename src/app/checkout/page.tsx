@@ -3,18 +3,16 @@
 import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import {
-  ArrowLeft,
-  ShieldCheck,
-  CheckCircle,
-  CreditCard,
-  Banknote,
-  AlertCircle,
-  Sparkles,
-  UserCheck,
-  Lock,
-  ShoppingBag,
-} from 'lucide-react';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import ShieldOutlinedIcon from '@mui/icons-material/ShieldOutlined';
+import CheckCircleOutlinedIcon from '@mui/icons-material/CheckCircleOutlined';
+import CreditCardIcon from '@mui/icons-material/CreditCard';
+import ErrorOutlinedIcon from '@mui/icons-material/ErrorOutlined';
+import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
+import VerifiedUserOutlinedIcon from '@mui/icons-material/VerifiedUserOutlined';
+import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
+import ShoppingBagIcon from '@mui/icons-material/ShoppingBag';
+import SaveOutlinedIcon from '@mui/icons-material/SaveOutlined';
 import AnnouncementBar from '@/components/announcement-bar/AnnouncementBar';
 import Navbar from '@/components/navbar/Navbar';
 import Footer from '@/components/footer/Footer';
@@ -30,13 +28,15 @@ import {
 import styles from './CheckoutPage.module.css';
 
 interface CheckoutItem {
-  productId: string;
+  productId?: string;
+  id?: string;
   name: string;
   slug?: string;
   sku?: string;
   image?: string;
   quantity: number;
-  unitPrice: number;
+  unitPrice?: number;
+  price?: number;
   wristSize?: string;
   tier?: string;
   ritual?: boolean;
@@ -83,6 +83,10 @@ function CheckoutContent() {
   // Saved addresses
   const [savedAddresses, setSavedAddresses] = useState<any[]>([]);
   const [selectedAddressId, setSelectedAddressId] = useState<string>('');
+  const [isAddingNewAddress, setIsAddingNewAddress] = useState(false);
+  const [saveToAccountProfile, setSaveToAccountProfile] = useState(true);
+  const [savingAddress, setSavingAddress] = useState(false);
+  const [addressSavedSuccess, setAddressSavedSuccess] = useState(false);
 
   // Payment
   const paymentMethod = 'RAZORPAY';
@@ -231,7 +235,15 @@ function CheckoutContent() {
     initCheckout();
   }, []);
 
-  const rawSubtotal = items.reduce((sum, it) => sum + (it.unitPrice || 0) * (it.quantity || 1), 0);
+  function getItemUnitPrice(it: any): number {
+    return Number(it.unitPrice ?? it.price ?? 0);
+  }
+
+  function getItemId(it: any): string {
+    return it.productId || it.id || '';
+  }
+
+  const rawSubtotal = items.reduce((sum, it) => sum + getItemUnitPrice(it) * (Number(it.quantity) || 1), 0);
 
   async function validateAndApplyCoupon(codeToApply: string) {
     const clean = codeToApply.trim().toUpperCase();
@@ -331,6 +343,29 @@ function CheckoutContent() {
     setIsSubmitting(true);
 
     try {
+      // If user opted to save this newly entered address to profile, save it in background
+      if (user && saveToAccountProfile && (!selectedAddressId || isAddingNewAddress)) {
+        try {
+          fetch('/api/account/addresses', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              fullName: name,
+              phone,
+              flatBuilding,
+              streetArea,
+              landmark,
+              city,
+              state,
+              pinCode,
+              isDefault: savedAddresses.length === 0,
+            }),
+          }).catch(() => {});
+        } catch {
+          // Non-blocking
+        }
+      }
+
       const res = await fetch('/api/orders/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -347,8 +382,8 @@ function CheckoutContent() {
           paymentMethod,
           couponCode: couponApplied ? appliedCode : null,
           items: items.map((it) => ({
-            productId: it.productId,
-            quantity: it.quantity || 1,
+            productId: getItemId(it),
+            quantity: Number(it.quantity) || 1,
             wristSize: it.wristSize || 'Free Size (Elastic)',
           })),
         }),
@@ -460,6 +495,7 @@ function CheckoutContent() {
     const selected = savedAddresses.find((item) => item.id === addressId);
     if (!selected) return;
     setSelectedAddressId(addressId);
+    setIsAddingNewAddress(false);
     setName(selected.fullName || name);
     setPhone(selected.phone || phone);
     setFlatBuilding(selected.flatBuilding || '');
@@ -470,6 +506,72 @@ function CheckoutContent() {
     setPinCode(selected.pinCode || '');
   }
 
+  function handleAddNewAddress() {
+    setSelectedAddressId('');
+    setIsAddingNewAddress(true);
+    setAddressSavedSuccess(false);
+    setFlatBuilding('');
+    setStreetArea('');
+    setLandmark('');
+    setCity('');
+    setState(INDIAN_STATES_AND_UTS[8]);
+    setPinCode('');
+  }
+
+  async function handleSaveAddressDirectly() {
+    setErrorMsg(null);
+    if (!name || !phone) {
+      setErrorMsg('Please enter your full name and 10-digit mobile number.');
+      return;
+    }
+    if (!isValidIndianMobile(phone)) {
+      setErrorMsg('Please enter a valid 10-digit Indian mobile number.');
+      return;
+    }
+    if (!isValidIndianPinCode(pinCode)) {
+      setErrorMsg('Please enter a valid 6-digit PIN code.');
+      return;
+    }
+    if (!flatBuilding || !streetArea || !city || !state) {
+      setErrorMsg('Please fill in Flat/House No., Street/Area, City, and State.');
+      return;
+    }
+
+    setSavingAddress(true);
+    try {
+      const res = await fetch('/api/account/addresses', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          fullName: name,
+          phone,
+          flatBuilding,
+          streetArea,
+          landmark,
+          city,
+          state,
+          pinCode,
+          isDefault: savedAddresses.length === 0,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'Failed to save address to profile');
+      }
+
+      const newAddress = data.address;
+      setSavedAddresses((prev) => [newAddress, ...prev.filter((a) => a.id !== newAddress.id)]);
+      setSelectedAddressId(newAddress.id);
+      setIsAddingNewAddress(false);
+      setAddressSavedSuccess(true);
+      setTimeout(() => setAddressSavedSuccess(false), 4000);
+    } catch (err: any) {
+      setErrorMsg(err.message || 'Could not save address to your account profile.');
+    } finally {
+      setSavingAddress(false);
+    }
+  }
+
   return (
     <div className={styles.pageWrap}>
       <AnnouncementBar />
@@ -478,11 +580,11 @@ function CheckoutContent() {
       <main className={styles.main}>
         <div className={styles.topBar}>
           <Link href="/cart" className={styles.backLink}>
-            <ArrowLeft size={16} />
+            <ArrowBackIcon style={{ fontSize: 18 }} />
             <span>Back to Cart</span>
           </Link>
           <span className={styles.secureBadge}>
-            <ShieldCheck size={15} />
+            <ShieldOutlinedIcon style={{ fontSize: 16 }} />
             <span>100% Encrypted Checkout</span>
           </span>
         </div>
@@ -492,9 +594,66 @@ function CheckoutContent() {
           Complete your order with Mantra-energized dispatch across India.
         </p>
 
-        {loaded && items.length === 0 ? (
+        {!loaded || !authChecked ? (
+          <div className={styles.grid}>
+            {/* Left Column Skeleton */}
+            <div className={styles.leftCol}>
+              {/* Step 1 Skeleton */}
+              <div className={styles.card}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
+                  <div className={`${styles.skeletonLine} ${styles.skeletonPulse}`} style={{ width: '28px', height: '28px', borderRadius: '999px' }} />
+                  <div className={`${styles.skeletonLine} ${styles.skeletonPulse}`} style={{ width: '180px', height: '22px' }} />
+                </div>
+                <div className={`${styles.skeletonLine} ${styles.skeletonPulse}`} style={{ width: '100%', height: '48px', borderRadius: '10px' }} />
+              </div>
+
+              {/* Step 2 Skeleton */}
+              <div className={styles.card}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '18px' }}>
+                  <div className={`${styles.skeletonLine} ${styles.skeletonPulse}`} style={{ width: '28px', height: '28px', borderRadius: '999px' }} />
+                  <div className={`${styles.skeletonLine} ${styles.skeletonPulse}`} style={{ width: '230px', height: '22px' }} />
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px', marginBottom: '16px' }}>
+                  <div className={`${styles.skeletonLine} ${styles.skeletonPulse}`} style={{ height: '90px', borderRadius: '10px' }} />
+                  <div className={`${styles.skeletonLine} ${styles.skeletonPulse}`} style={{ height: '90px', borderRadius: '10px' }} />
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  <div className={`${styles.skeletonLine} ${styles.skeletonPulse}`} style={{ width: '100%', height: '42px', borderRadius: '8px' }} />
+                  <div className={`${styles.skeletonLine} ${styles.skeletonPulse}`} style={{ width: '100%', height: '42px', borderRadius: '8px' }} />
+                </div>
+              </div>
+
+              {/* Step 3 Skeleton */}
+              <div className={styles.card}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
+                  <div className={`${styles.skeletonLine} ${styles.skeletonPulse}`} style={{ width: '28px', height: '28px', borderRadius: '999px' }} />
+                  <div className={`${styles.skeletonLine} ${styles.skeletonPulse}`} style={{ width: '160px', height: '22px' }} />
+                </div>
+                <div className={`${styles.skeletonLine} ${styles.skeletonPulse}`} style={{ width: '100%', height: '56px', borderRadius: '10px' }} />
+              </div>
+            </div>
+
+            {/* Right Column Skeleton */}
+            <aside className={styles.summaryCard}>
+              <div className={`${styles.skeletonLine} ${styles.skeletonPulse}`} style={{ width: '140px', height: '22px', marginBottom: '18px' }} />
+              <div style={{ display: 'flex', gap: '12px', marginBottom: '20px' }}>
+                <div className={`${styles.skeletonLine} ${styles.skeletonPulse}`} style={{ width: '64px', height: '64px', borderRadius: '8px' }} />
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <div className={`${styles.skeletonLine} ${styles.skeletonPulse}`} style={{ width: '80%', height: '16px' }} />
+                  <div className={`${styles.skeletonLine} ${styles.skeletonPulse}`} style={{ width: '40%', height: '14px' }} />
+                </div>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '20px' }}>
+                <div className={`${styles.skeletonLine} ${styles.skeletonPulse}`} style={{ width: '100%', height: '16px' }} />
+                <div className={`${styles.skeletonLine} ${styles.skeletonPulse}`} style={{ width: '100%', height: '16px' }} />
+                <div className={`${styles.skeletonLine} ${styles.skeletonPulse}`} style={{ width: '100%', height: '24px' }} />
+              </div>
+              <div className={`${styles.skeletonLine} ${styles.skeletonPulse}`} style={{ width: '100%', height: '48px', borderRadius: '12px' }} />
+            </aside>
+          </div>
+        ) : items.length === 0 ? (
           <div className={styles.emptyState}>
-            <ShoppingBag size={44} style={{ color: 'var(--primary)', marginBottom: '12px' }} />
+            <ShoppingBagIcon style={{ fontSize: 48, color: 'var(--primary)', marginBottom: '12px' }} />
             <h2 style={{ fontFamily: 'var(--font-serif)', margin: '0 0 8px' }}>
               No Items Selected for Checkout
             </h2>
@@ -509,7 +668,7 @@ function CheckoutContent() {
           <>
             {errorMsg && (
               <div className={styles.errorBanner}>
-                <AlertCircle size={18} />
+                <ErrorOutlinedIcon style={{ fontSize: 20 }} />
                 <span>{errorMsg}</span>
               </div>
             )}
@@ -526,7 +685,7 @@ function CheckoutContent() {
                     </h2>
                     {user && (
                       <span style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--success)', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                        <UserCheck size={15} /> Verified
+                        <VerifiedUserOutlinedIcon style={{ fontSize: 16 }} /> Verified
                       </span>
                     )}
                   </div>
@@ -538,7 +697,7 @@ function CheckoutContent() {
                   ) : user ? (
                     <div className={styles.signedInStrip}>
                       <div className={styles.signedInInfo}>
-                        <UserCheck size={18} />
+                        <VerifiedUserOutlinedIcon style={{ fontSize: 18 }} />
                         <span>
                           Signed in as <strong>{user.name}</strong> ({user.email})
                         </span>
@@ -566,7 +725,7 @@ function CheckoutContent() {
                             className={styles.btnPrimary}
                             onClick={() => router.push('/login?redirect=/checkout&tab=register')}
                           >
-                            <Sparkles size={15} />
+                            <AutoAwesomeIcon style={{ fontSize: 16 }} />
                             <span>
                               {couponOffer
                                 ? `Register (${couponOffer.discountPct}% Off)`
@@ -578,7 +737,7 @@ function CheckoutContent() {
                             className={styles.btnOutline}
                             onClick={() => router.push('/login?redirect=/checkout')}
                           >
-                            <Lock size={15} />
+                            <LockOutlinedIcon style={{ fontSize: 16 }} />
                             <span>Sign In</span>
                           </button>
                         </div>
@@ -594,8 +753,27 @@ function CheckoutContent() {
                       <span className={styles.stepNum}>2</span>
                       <span>Contact &amp; Delivery Address</span>
                     </h2>
+                    {savedAddresses.length > 0 && selectedAddressId && !isAddingNewAddress && (
+                      <button
+                        type="button"
+                        onClick={handleAddNewAddress}
+                        style={{
+                          background: 'none',
+                          border: '1px solid var(--border)',
+                          borderRadius: '8px',
+                          padding: '6px 12px',
+                          fontSize: '0.8rem',
+                          fontWeight: 700,
+                          color: 'var(--primary)',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        + Add New Address
+                      </button>
+                    )}
                   </div>
 
+                  {/* Contact Info (Always shown or verified) */}
                   <div className={styles.formGrid2} style={{ marginBottom: '14px' }}>
                     <div className={styles.field}>
                       <label className={styles.label}>Full Name *</label>
@@ -622,7 +800,7 @@ function CheckoutContent() {
                     </div>
                   </div>
 
-                  <div className={styles.field} style={{ marginBottom: '14px' }}>
+                  <div className={styles.field} style={{ marginBottom: '18px' }}>
                     <label className={styles.label}>Email Address *</label>
                     <input
                       type="email"
@@ -634,180 +812,238 @@ function CheckoutContent() {
                     />
                   </div>
 
-                  <div className={styles.formGrid2} style={{ marginBottom: '14px' }}>
-                    <div className={styles.field}>
-                      <label className={styles.label}>Flat / House No. / Building *</label>
-                      <input
-                        type="text"
-                        required
-                        placeholder="e.g. 402, Lotus Residency"
-                        value={flatBuilding}
-                        onChange={(e) => setFlatBuilding(e.target.value)}
-                        className={styles.input}
-                      />
-                    </div>
-                    <div className={styles.field}>
-                      <label className={styles.label}>Street / Area / Locality *</label>
-                      <input
-                        type="text"
-                        required
-                        placeholder="e.g. MG Road, Indiranagar"
-                        value={streetArea}
-                        onChange={(e) => setStreetArea(e.target.value)}
-                        className={styles.input}
-                      />
-                    </div>
-                  </div>
-
-                  <div className={styles.field} style={{ marginBottom: '14px' }}>
-                    <label className={styles.label}>Landmark (Optional)</label>
-                    <input
-                      type="text"
-                      placeholder="Near Temple / Metro Station"
-                      value={landmark}
-                      onChange={(e) => setLandmark(e.target.value)}
-                      className={styles.input}
-                    />
-                  </div>
-
-                  <div className={styles.formGrid3}>
-                    <div className={styles.field}>
-                      <label className={styles.label}>City *</label>
-                      <input
-                        type="text"
-                        required
-                        placeholder="e.g. Bengaluru"
-                        value={city}
-                        onChange={(e) => setCity(e.target.value)}
-                        className={styles.input}
-                      />
-                    </div>
-                    <div className={styles.field}>
-                      <label className={styles.label}>State / UT *</label>
-                      <select
-                        value={state}
-                        onChange={(e) => setState(e.target.value)}
-                        className={styles.select}
-                      >
-                        {INDIAN_STATES_AND_UTS.map((st) => (
-                          <option key={st} value={st}>
-                            {st}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    <div className={styles.field}>
-                      <label className={styles.label}>PIN Code *</label>
-                      <input
-                        type="text"
-                        required
-                        maxLength={6}
-                        placeholder="6-digit PIN"
-                        value={pinCode}
-                        onChange={(e) => setPinCode(e.target.value.replace(/\D/g, ''))}
-                        className={styles.input}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Saved Addresses List */}
+                  {/* If user has saved addresses, display them */}
                   {savedAddresses.length > 0 && (
                     <div style={{ marginBottom: '18px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', marginBottom: '8px' }}>
-                        <label className={styles.label}>Choose a saved address</label>
-                        <Link href="/account" style={{ color: 'var(--primary)', fontSize: '0.78rem', fontWeight: 700, textDecoration: 'none' }}>Manage addresses</Link>
+                        <label className={styles.label} style={{ margin: 0, fontWeight: 700 }}>
+                          Select Delivery Address
+                        </label>
+                        <Link href="/account" style={{ color: 'var(--primary)', fontSize: '0.78rem', fontWeight: 700, textDecoration: 'none' }}>
+                          Manage addresses
+                        </Link>
                       </div>
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '10px' }}>
-                        {savedAddresses.map((address) => (
+
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '10px' }}>
+                        {savedAddresses.map((address) => {
+                          const isSelected = selectedAddressId === address.id && !isAddingNewAddress;
+                          return (
+                            <div
+                              key={address.id}
+                              onClick={() => selectSavedAddress(address.id)}
+                              style={{
+                                textAlign: 'left',
+                                cursor: 'pointer',
+                                borderRadius: '10px',
+                                padding: '14px',
+                                border: isSelected ? '2px solid var(--primary)' : '1px solid var(--border)',
+                                background: isSelected ? 'var(--primary-light)' : '#fff',
+                                color: 'var(--text-primary)',
+                                position: 'relative',
+                                transition: 'all 0.2s ease',
+                              }}
+                            >
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '6px' }}>
+                                <strong style={{ fontSize: '0.88rem' }}>
+                                  {address.fullName}
+                                  {address.isDefault ? (
+                                    <span style={{ fontSize: '0.72rem', color: 'var(--primary)', marginLeft: '6px', fontWeight: 600 }}>
+                                      (Default)
+                                    </span>
+                                  ) : null}
+                                </strong>
+                                {isSelected && (
+                                  <span style={{
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '3px',
+                                    fontSize: '0.72rem',
+                                    background: 'var(--primary)',
+                                    color: '#fff',
+                                    padding: '2px 8px',
+                                    borderRadius: '12px',
+                                    fontWeight: 700,
+                                  }}>
+                                    ✓ Selected
+                                  </span>
+                                )}
+                              </div>
+                              <span style={{ display: 'block', fontSize: '0.8rem', lineHeight: 1.5, color: 'var(--text-secondary)' }}>
+                                {address.flatBuilding}, {address.streetArea}
+                                {address.landmark ? `, Near ${address.landmark}` : ''}<br />
+                                {address.city}, {address.state} — <strong>{address.pinCode}</strong><br />
+                                📱 +91 {address.phone}
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
+
+                      {/* Toggle to add a new address or cancel if currently adding */}
+                      {isAddingNewAddress ? (
+                        <div style={{ marginTop: '12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                          <span style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+                            Entering New Delivery Address:
+                          </span>
                           <button
                             type="button"
-                            key={address.id}
-                            onClick={() => selectSavedAddress(address.id)}
-                            style={{ textAlign: 'left', cursor: 'pointer', borderRadius: '10px', padding: '12px', border: selectedAddressId === address.id ? '1.5px solid var(--primary)' : '1px solid var(--border)', background: selectedAddressId === address.id ? 'var(--primary-light)' : '#fff', color: 'var(--text-primary)' }}
+                            onClick={() => {
+                              if (savedAddresses.length > 0) {
+                                selectSavedAddress(savedAddresses[0].id);
+                              }
+                            }}
+                            style={{
+                              background: 'none',
+                              border: 'none',
+                              color: 'var(--primary)',
+                              fontSize: '0.8rem',
+                              fontWeight: 700,
+                              cursor: 'pointer',
+                              textDecoration: 'underline',
+                            }}
                           >
-                            <strong style={{ display: 'block', fontSize: '0.82rem', marginBottom: '4px' }}>{address.fullName}{address.isDefault ? ' · Default' : ''}</strong>
-                            <span style={{ display: 'block', fontSize: '0.75rem', lineHeight: 1.45, color: 'var(--text-secondary)' }}>{address.flatBuilding}, {address.streetArea}<br />{address.city}, {address.state} — {address.pinCode}</span>
+                            Use Saved Address Instead
                           </button>
-                        ))}
-                      </div>
+                        </div>
+                      ) : null}
                     </div>
                   )}
 
-                  <div className={styles.formGrid2} style={{ marginBottom: '14px' }}>
-                    <div className={styles.field}>
-                      <label className={styles.label}>Flat / House No. / Building *</label>
-                      <input
-                        type="text"
-                        required
-                        placeholder="e.g. 402, Lotus Residency"
-                        value={flatBuilding}
-                        onChange={(e) => setFlatBuilding(e.target.value)}
-                        className={styles.input}
-                      />
-                    </div>
-                    <div className={styles.field}>
-                      <label className={styles.label}>Street / Area / Locality *</label>
-                      <input
-                        type="text"
-                        required
-                        placeholder="e.g. MG Road, Indiranagar"
-                        value={streetArea}
-                        onChange={(e) => setStreetArea(e.target.value)}
-                        className={styles.input}
-                      />
-                    </div>
-                  </div>
+                  {/* Only show address input fields if user is adding a new address OR has no saved address */}
+                  {(!selectedAddressId || isAddingNewAddress || savedAddresses.length === 0) && (
+                    <div style={{
+                      background: savedAddresses.length > 0 ? '#faf7fc' : 'transparent',
+                      padding: savedAddresses.length > 0 ? '16px' : '0',
+                      borderRadius: '10px',
+                      border: savedAddresses.length > 0 ? '1px dashed var(--border)' : 'none',
+                    }}>
+                      {savedAddresses.length > 0 && (
+                        <p style={{ margin: '0 0 12px', fontSize: '0.84rem', fontWeight: 700, color: 'var(--primary)' }}>
+                          New Address Details
+                        </p>
+                      )}
+                      <div className={styles.formGrid2} style={{ marginBottom: '14px' }}>
+                        <div className={styles.field}>
+                          <label className={styles.label}>Flat / House No. / Building *</label>
+                          <input
+                            type="text"
+                            required
+                            placeholder="e.g. 402, Lotus Residency"
+                            value={flatBuilding}
+                            onChange={(e) => setFlatBuilding(e.target.value)}
+                            className={styles.input}
+                          />
+                        </div>
+                        <div className={styles.field}>
+                          <label className={styles.label}>Street / Area / Locality *</label>
+                          <input
+                            type="text"
+                            required
+                            placeholder="e.g. MG Road, Indiranagar"
+                            value={streetArea}
+                            onChange={(e) => setStreetArea(e.target.value)}
+                            className={styles.input}
+                          />
+                        </div>
+                      </div>
 
-                  <div className={styles.field} style={{ marginBottom: '14px' }}>
-                    <label className={styles.label}>Landmark (Optional)</label>
-                    <input
-                      type="text"
-                      placeholder="Near Temple / Metro Station"
-                      value={landmark}
-                      onChange={(e) => setLandmark(e.target.value)}
-                      className={styles.input}
-                    />
-                  </div>
+                      <div className={styles.field} style={{ marginBottom: '14px' }}>
+                        <label className={styles.label}>Landmark (Optional)</label>
+                        <input
+                          type="text"
+                          placeholder="Near Temple / Metro Station"
+                          value={landmark}
+                          onChange={(e) => setLandmark(e.target.value)}
+                          className={styles.input}
+                        />
+                      </div>
 
-                  <div className={styles.formGrid3}>
-                    <div className={styles.field}>
-                      <label className={styles.label}>City *</label>
-                      <input
-                        type="text"
-                        required
-                        placeholder="e.g. Bengaluru"
-                        value={city}
-                        onChange={(e) => setCity(e.target.value)}
-                        className={styles.input}
-                      />
+                      <div className={styles.formGrid3}>
+                        <div className={styles.field}>
+                          <label className={styles.label}>City *</label>
+                          <input
+                            type="text"
+                            required
+                            placeholder="e.g. Bengaluru"
+                            value={city}
+                            onChange={(e) => setCity(e.target.value)}
+                            className={styles.input}
+                          />
+                        </div>
+                        <div className={styles.field}>
+                          <label className={styles.label}>State / UT *</label>
+                          <select
+                            value={state}
+                            onChange={(e) => setState(e.target.value)}
+                            className={styles.select}
+                          >
+                            {INDIAN_STATES_AND_UTS.map((st) => (
+                              <option key={st} value={st}>
+                                {st}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        <div className={styles.field}>
+                          <label className={styles.label}>PIN Code *</label>
+                          <input
+                            type="text"
+                            required
+                            maxLength={6}
+                            placeholder="6-digit PIN"
+                            value={pinCode}
+                            onChange={(e) => setPinCode(e.target.value.replace(/\D/g, ''))}
+                            className={styles.input}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Save Address to Profile Option */}
+                      {user && (
+                        <div style={{ marginTop: '16px', paddingTop: '14px', borderTop: '1px solid var(--border)' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
+                            <label style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+                              <input
+                                type="checkbox"
+                                checked={saveToAccountProfile}
+                                onChange={(e) => setSaveToAccountProfile(e.target.checked)}
+                                style={{ accentColor: 'var(--primary)', width: '16px', height: '16px', cursor: 'pointer' }}
+                              />
+                              <span>Save this address to my REHAS account profile</span>
+                            </label>
+
+                            <button
+                              type="button"
+                              onClick={handleSaveAddressDirectly}
+                              disabled={savingAddress}
+                              style={{
+                                background: 'var(--primary-light)',
+                                color: 'var(--primary)',
+                                border: '1.5px solid var(--primary)',
+                                borderRadius: '8px',
+                                padding: '6px 14px',
+                                fontSize: '0.8rem',
+                                fontWeight: 700,
+                                cursor: savingAddress ? 'not-allowed' : 'pointer',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                                transition: 'all 0.2s ease',
+                              }}
+                            >
+                              <SaveOutlinedIcon style={{ fontSize: 16 }} />
+                              <span>{savingAddress ? 'Saving...' : 'Save Address Now'}</span>
+                            </button>
+                          </div>
+                          {addressSavedSuccess && (
+                            <p style={{ margin: '8px 0 0', fontSize: '0.8rem', color: 'var(--success)', fontWeight: 600 }}>
+                              ✓ Address saved to your profile and selected for delivery!
+                            </p>
+                          )}
+                        </div>
+                      )}
                     </div>
-                    <div className={styles.field}>
-                      <label className={styles.label}>State / UT *</label>
-                      <select
-                        value={state}
-                        onChange={(e) => setState(e.target.value)}
-                        className={styles.select}
-                      >
-                        {INDIAN_STATES_AND_UTS.map((st) => (
-                          <option key={st} value={st}>
-                            {st}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    <div className={styles.field}>
-                      <label className={styles.label}>PIN Code *</label>
-                      <input
-                        type="text"
-                        required
-                        maxLength={6}
-                        placeholder="6-digit PIN"
-                        value={pinCode}
-                        onChange={(e) => setPinCode(e.target.value.replace(/\D/g, ''))}
-                        className={styles.input}
-                      />
-                    </div>
-                  </div>
+                  )}
                 </section>
 
                 {/* Step 3: Payment Method */}
@@ -828,7 +1064,7 @@ function CheckoutContent() {
                           checked={true}
                           readOnly
                         />
-                        <CreditCard size={20} style={{ color: 'var(--primary)' }} />
+                        <CreditCardIcon style={{ fontSize: 22, color: 'var(--primary)' }} />
                         <div>
                           <div className={styles.payTitle}>UPI, Cards, NetBanking (Razorpay Secured)</div>
                           <div className={styles.paySub}>
@@ -872,7 +1108,7 @@ function CheckoutContent() {
                         </div>
                       </div>
                       <div className={styles.itemPrice}>
-                        {formatINR((item.unitPrice || 0) * (item.quantity || 1))}
+                        {formatINR(getItemUnitPrice(item) * (Number(item.quantity) || 1))}
                       </div>
                     </div>
                   ))}
@@ -908,7 +1144,7 @@ function CheckoutContent() {
                   </div>
                   {couponMsg && (
                     <div className={couponMsg.ok ? styles.couponMsgOk : styles.couponMsgErr}>
-                      {couponMsg.ok && <CheckCircle size={14} />}
+                      {couponMsg.ok && <CheckCircleOutlinedIcon style={{ fontSize: 16 }} />}
                       <span>{couponMsg.text}</span>
                     </div>
                   )}

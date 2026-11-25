@@ -21,6 +21,9 @@ import {
 } from 'lucide-react';
 import { formatINR, isValidIndianPinCode } from '@/lib/india-localization';
 import BreadcrumbNav from '@/components/common/BreadcrumbNav';
+import NoRefundPolicy from '@/components/products/NoRefundPolicy';
+import ProductReviewsSection from '@/components/products/ProductReviewsSection';
+import ShopProductCard from '@/components/shop/ShopProductCard';
 import styles from './ProductDetail.module.css';
 
 interface MediaItem {
@@ -34,11 +37,13 @@ interface MediaItem {
 interface ProductDetailClientProps {
   product: any;
   freeShippingThreshold?: number;
+  relatedProducts?: any[];
 }
 
 export default function ProductDetailClient({
   product,
   freeShippingThreshold = 999,
+  relatedProducts = [],
 }: ProductDetailClientProps) {
   const router = useRouter();
   const sc = (product.structuredContent as any) || {};
@@ -53,16 +58,33 @@ export default function ProductDetailClient({
 
   const [selectedMediaIdx, setSelectedMediaIdx] = useState(0);
 
-  // 3-Tier Edition Pricing strictly from DB
+  // 3-Tier Edition Pricing strictly from DB with original and discounted values
+  const tierOriginalPrices = sc.tierOriginalPrices || {};
   const tiers = [
-    product.rootPrice ? { key: 'root', label: 'Root', price: Number(product.rootPrice) } : null,
-    product.auraPrice ? { key: 'aura', label: 'Aura', price: Number(product.auraPrice) } : null,
-    product.divinePrice ? { key: 'divine', label: 'Divine', price: Number(product.divinePrice) } : null,
-  ].filter(Boolean) as { key: string; label: string; price: number }[];
+    product.rootPrice ? { 
+      key: 'root', 
+      label: 'Root', 
+      price: Number(product.rootPrice),
+      comparePrice: Number(tierOriginalPrices.root || product.compareAtPrice || 0)
+    } : null,
+    product.auraPrice ? { 
+      key: 'aura', 
+      label: 'Aura', 
+      price: Number(product.auraPrice),
+      comparePrice: Number(tierOriginalPrices.aura || (product.auraPrice * 1.4) || 0)
+    } : null,
+    product.divinePrice ? { 
+      key: 'divine', 
+      label: 'Divine', 
+      price: Number(product.divinePrice),
+      comparePrice: Number(tierOriginalPrices.divine || (product.divinePrice * 1.45) || 0)
+    } : null,
+  ].filter(Boolean) as { key: string; label: string; price: number; comparePrice: number }[];
 
   const [selectedTier, setSelectedTier] = useState<string>(tiers[0]?.key || 'standard');
-  const activeTierPrice =
-    tiers.find((t) => t.key === selectedTier)?.price ?? Number(product.price || 0);
+  const activeTierObj = tiers.find((t) => t.key === selectedTier);
+  const activeTierPrice = activeTierObj?.price ?? Number(product.price || 0);
+  const activeTierComparePrice = activeTierObj?.comparePrice ?? Number(product.compareAtPrice || 0);
 
   // Energy Activation Ritual strictly from DB
   const hasRitual = Boolean(
@@ -375,28 +397,57 @@ export default function ProductDetailClient({
             )}
             <h1 className={styles.productTitle}>{product.name}</h1>
 
-            {product.reviewCount > 0 && (
-              <div className={styles.ratingRow}>
+            {product.reviewCount > 0 ? (
+              <a href="#customer-reviews" className={styles.ratingRow} style={{ textDecoration: 'none' }}>
                 <div style={{ display: 'flex', color: '#e59819' }}>
                   {[...Array(5)].map((_, i) => (
-                    <Star key={i} size={14} fill="#e59819" />
+                    <Star key={i} size={14} fill={i < Math.round(product.rating) ? '#e59819' : 'none'} color="#e59819" />
                   ))}
                 </div>
                 <span>
                   <strong>{product.rating}</strong> ({product.reviewCount} verified reviews)
                 </span>
-              </div>
+              </a>
+            ) : (
+              <a href="#customer-reviews" className={styles.ratingRow} style={{ textDecoration: 'none' }}>
+                <div style={{ display: 'flex', color: '#D1D5DB' }}>
+                  {[...Array(5)].map((_, i) => (
+                    <Star key={i} size={14} color="#D1D5DB" />
+                  ))}
+                </div>
+                <span style={{ color: 'var(--text-secondary)' }}>
+                  0.0 (0 reviews) · <span style={{ color: 'var(--primary)', fontWeight: 600 }}>Be the first to review</span>
+                </span>
+              </a>
             )}
           </div>
 
           {hookText && <p className={styles.emotionalHook}>{hookText}</p>}
 
-          {/* Live Price */}
+          {/* Live Price with Discount Savings */}
           <div className={styles.priceBox}>
-            <span className={styles.livePrice}>{formatINR(finalUnitPrice * quantity)}</span>
-            {product.compareAtPrice && product.compareAtPrice > activeTierPrice && (
-              <span className={styles.comparePrice}>{formatINR(product.compareAtPrice * quantity)}</span>
-            )}
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px', flexWrap: 'wrap' }}>
+              <span className={styles.livePrice}>{formatINR(finalUnitPrice * quantity)}</span>
+              {activeTierComparePrice > activeTierPrice && (
+                <>
+                  <span className={styles.comparePrice}>
+                    {formatINR((activeTierComparePrice + (includeRitual ? ritualPrice : 0)) * quantity)}
+                  </span>
+                  <span 
+                    style={{
+                      background: '#DC2626',
+                      color: '#FFFFFF',
+                      fontSize: '11px',
+                      fontWeight: 700,
+                      padding: '2px 8px',
+                      borderRadius: '4px',
+                    }}
+                  >
+                    SAVE {Math.round(((activeTierComparePrice - activeTierPrice) / activeTierComparePrice) * 100)}%
+                  </span>
+                </>
+              )}
+            </div>
           </div>
 
           {/* Astrology Alignment Cards (only if present in DB) */}
@@ -437,6 +488,11 @@ export default function ProductDetailClient({
                   >
                     <span className={styles.tierName}>{tier.label}</span>
                     <span className={styles.tierPrice}>{formatINR(tier.price)}</span>
+                    {tier.comparePrice > tier.price && (
+                      <span style={{ fontSize: '11px', color: '#9CA3AF', textDecoration: 'line-through' }}>
+                        {formatINR(tier.comparePrice)}
+                      </span>
+                    )}
                   </button>
                 ))}
               </div>
@@ -700,6 +756,54 @@ export default function ProductDetailClient({
                   </div>
                 );
               })}
+            </div>
+          </section>
+        )}
+
+        {/* 5. Common No Refund Policy & Why Choose This Product */}
+        <NoRefundPolicy />
+
+        {/* 6. Customer Reviews & Post-Delivery Verification Section */}
+        <ProductReviewsSection
+          productId={product.id}
+          initialReviews={product.reviews || []}
+          initialRating={product.rating || 0}
+          initialReviewCount={product.reviewCount || 0}
+        />
+
+        {/* 7. YOU MAY ALSO LIKE (Explore Other Premium Products In The Same Category) */}
+        {relatedProducts && relatedProducts.length > 0 && (
+          <section style={{ marginTop: '48px', paddingTop: '32px', borderTop: '1px solid rgba(86, 0, 103, 0.1)' }}>
+            <div style={{ marginBottom: '24px' }}>
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px', color: 'var(--secondary)' }}>
+                <Sparkles size={13} color="#D8B878" />
+                <span>Sacred Category Recommendations</span>
+              </div>
+              <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '26px', fontWeight: 800, color: 'var(--primary)', margin: '4px 0 6px 0' }}>
+                You May Also Like
+              </h2>
+              <p style={{ fontSize: '14px', color: 'var(--text-secondary)', margin: 0 }}>
+                Explore other premium products in the same category, energised with ancient Vedic rituals.
+              </p>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '20px' }}>
+              {relatedProducts.map((rel: any) => (
+                <ShopProductCard
+                  key={rel.id}
+                  id={rel.id}
+                  slug={rel.slug}
+                  name={rel.name}
+                  price={rel.price}
+                  compareAtPrice={rel.compareAtPrice}
+                  primaryImage={rel.primaryImage}
+                  rating={rel.rating}
+                  reviewCount={rel.reviewCount}
+                  primaryCrystal={rel.primaryCrystal}
+                  rulingPlanet={rel.rulingPlanet}
+                  isBestSeller={rel.isBestSeller}
+                />
+              ))}
             </div>
           </section>
         )}

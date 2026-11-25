@@ -16,41 +16,7 @@ export const metadata = {
   description: 'Explore ancient Vedic wisdom, gemstone energy secrets, consecration rituals, and planetary alignments curated by Astro Acharyas at REHAS.',
 };
 
-const DEFAULT_BLOGS = [
-  {
-    id: 'default-1',
-    title: 'How Consecrated Gemstone Bracelets Balance Your 7 Chakras',
-    slug: 'consecrated-gemstone-bracelets-balance-chakras',
-    summary: 'Discover how authentic energized crystals harmonize bodily prana, ground anxious energy, and align with your planetary chart.',
-    content: 'Full guide exploring Chakra alignments and gemstone frequencies.',
-    imageUrl: 'https://images.unsplash.com/photo-1611591475847-f8eec4a022b7?auto=format&fit=crop&w=800&q=80',
-    author: 'Astro Acharya - REHAS',
-    tags: 'Chakra Healing, Vedic Crystals',
-    createdAt: new Date('2025-01-15'),
-  },
-  {
-    id: 'default-2',
-    title: 'The Vedic Science of Rudraksha & Silver Energy Consecration',
-    slug: 'vedic-science-rudraksha-silver-consecration',
-    summary: 'Why metal purity and Vedic mantras awaken the hidden electromagnetic frequency of sacred seeds and natural gemstones.',
-    content: 'Full guide exploring Rudraksha sanctification and energy retention.',
-    imageUrl: 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=800&q=80',
-    author: 'Pandit Dev Sharma',
-    tags: 'Rudraksha, Consecration',
-    createdAt: new Date('2025-02-01'),
-  },
-  {
-    id: 'default-3',
-    title: 'Choosing Your Sacred Bracelet by Zodiac Sign & Nakshatra',
-    slug: 'choosing-sacred-bracelet-by-zodiac-nakshatra',
-    summary: 'A step-by-step astrological roadmap to wearing the exact gemstone suited for your birth moon chart and planetary dasha.',
-    content: 'Detailed breakdown of the 12 Rashi signs and their ideal healing crystals.',
-    imageUrl: 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&w=800&q=80',
-    author: 'Astro Acharya - REHAS',
-    tags: 'Zodiac, Planetary Crystals',
-    createdAt: new Date('2025-02-20'),
-  }
-];
+const DEFAULT_BLOGS: any[] = [];
 
 export default async function BlogListingPage() {
   let blogs: any[] = [];
@@ -60,10 +26,10 @@ export default async function BlogListingPage() {
       where: { published: true },
       orderBy: { createdAt: 'desc' },
     });
-    blogs = dbBlogs.length > 0 ? dbBlogs : DEFAULT_BLOGS;
+    blogs = dbBlogs;
   } catch (err) {
     console.error('Error fetching blogs in BlogListingPage:', err);
-    blogs = DEFAULT_BLOGS;
+    blogs = [];
   }
 
   const featuredBlog = blogs[0];

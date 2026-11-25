@@ -22,7 +22,11 @@ import {
   AlertCircle,
   ShoppingBag,
   ExternalLink,
-  ArrowRight
+  ArrowRight,
+  Star,
+  Send,
+  X,
+  MessageSquare
 } from 'lucide-react';
 import AnnouncementBar from '@/components/announcement-bar/AnnouncementBar';
 import Navbar from '@/components/navbar/Navbar';
@@ -73,11 +77,63 @@ export default function AccountPage() {
   const [profilePhone, setProfilePhone] = useState('');
   const [savingProfile, setSavingProfile] = useState(false);
 
+  // Review Modal State for Delivered Products
+  const [reviewModalProduct, setReviewModalProduct] = useState<{
+    productId: string;
+    productName: string;
+    productImage?: string;
+    orderNumber: string;
+  } | null>(null);
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewComment, setReviewComment] = useState('');
+  const [submittingReview, setSubmittingReview] = useState(false);
+  const [reviewSuccess, setReviewSuccess] = useState<string | null>(null);
+  const [reviewError, setReviewError] = useState<string | null>(null);
+
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState<'success' | 'error'>('success');
 
   // Wishlist item count in state
   const [wishlistCount, setWishlistCount] = useState(0);
+
+  async function handleAccountReviewSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!reviewModalProduct || !reviewComment.trim()) return;
+
+    setSubmittingReview(true);
+    setReviewSuccess(null);
+    setReviewError(null);
+
+    try {
+      const res = await fetch('/api/reviews', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          productId: reviewModalProduct.productId,
+          rating: reviewRating,
+          orderNumber: reviewModalProduct.orderNumber,
+          author: data?.user?.name || 'Verified Patron',
+          comment: reviewComment.trim(),
+        }),
+      });
+
+      const resData = await res.json();
+      if (!res.ok) {
+        setReviewError(resData.error || 'Failed to submit review');
+      } else {
+        setReviewSuccess('Dhanyawad! Your verified delivered review has been published.');
+        setTimeout(() => {
+          setReviewModalProduct(null);
+          setReviewComment('');
+          setReviewSuccess(null);
+        }, 2200);
+      }
+    } catch {
+      setReviewError('An unexpected error occurred while posting your review.');
+    } finally {
+      setSubmittingReview(false);
+    }
+  }
 
   async function loadAccount(isBackground = false) {
     if (!isBackground) {
@@ -762,18 +818,54 @@ export default function AccountPage() {
                                   </Link>
                                   <span>Quantity: {item.quantity}</span>
                                 </div>
-                                <Link 
-                                  className={styles.track} 
-                                  href="/track-order"
-                                  onClick={() => {
-                                    if (typeof window !== 'undefined') {
-                                      sessionStorage.setItem('rehas_track_order_num', order.orderNumber);
-                                    }
-                                  }}
-                                >
-                                  <span>Track Order</span>
-                                  <ArrowRight size={14} />
-                                </Link>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'flex-end' }}>
+                                  <Link 
+                                    className={styles.track} 
+                                    href="/track-order"
+                                    onClick={() => {
+                                      if (typeof window !== 'undefined') {
+                                        sessionStorage.setItem('rehas_track_order_num', order.orderNumber);
+                                      }
+                                    }}
+                                  >
+                                    <span>Track Order</span>
+                                    <ArrowRight size={14} />
+                                  </Link>
+                                  {order.shippingStatus === 'DELIVERED' && item.product?.id && (
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        setReviewModalProduct({
+                                          productId: item.product.id,
+                                          productName: item.product.name,
+                                          productImage: item.product.primaryImage,
+                                          orderNumber: order.orderNumber,
+                                        });
+                                        setReviewRating(5);
+                                        setReviewComment('');
+                                        setReviewSuccess(null);
+                                        setReviewError(null);
+                                      }}
+                                      style={{
+                                        fontSize: '12px',
+                                        fontWeight: 700,
+                                        color: '#560067',
+                                        background: '#FAF5FC',
+                                        border: '1.5px solid #560067',
+                                        padding: '5px 12px',
+                                        borderRadius: '6px',
+                                        cursor: 'pointer',
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        gap: '5px',
+                                        transition: 'all 0.2s',
+                                      }}
+                                    >
+                                      <Star size={13} fill="#D8B878" color="#D8B878" />
+                                      <span>Write Review</span>
+                                    </button>
+                                  )}
+                                </div>
                               </div>
                             ))}
                           </article>
@@ -1005,6 +1097,185 @@ export default function AccountPage() {
           </section>
         </div>
       </main>
+
+      {/* Review Modal for Delivered Products */}
+      {reviewModalProduct && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0, 0, 0, 0.6)',
+            backdropFilter: 'blur(4px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 10000,
+            padding: '20px',
+          }}
+          onClick={() => setReviewModalProduct(null)}
+        >
+          <div
+            style={{
+              background: '#FFFFFF',
+              borderRadius: '16px',
+              maxWidth: '520px',
+              width: '100%',
+              padding: '28px',
+              boxShadow: '0 12px 40px rgba(0, 0, 0, 0.25)',
+              position: 'relative',
+              maxHeight: '90vh',
+              overflowY: 'auto',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              onClick={() => setReviewModalProduct(null)}
+              style={{
+                position: 'absolute',
+                top: '16px',
+                right: '16px',
+                background: '#F3F4F6',
+                border: 'none',
+                borderRadius: '50%',
+                width: '32px',
+                height: '32px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#4B5563',
+              }}
+              aria-label="Close modal"
+            >
+              <X size={18} />
+            </button>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+              {reviewModalProduct.productImage && (
+                <img
+                  src={reviewModalProduct.productImage}
+                  alt={reviewModalProduct.productName}
+                  style={{ width: '50px', height: '50px', borderRadius: '8px', objectFit: 'cover', border: '1px solid #E5E7EB' }}
+                />
+              )}
+              <div>
+                <span style={{ fontSize: '11px', color: '#059669', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                  <CheckCircle2 size={12} style={{ display: 'inline', verticalAlign: '-1px', marginRight: '3px' }} />
+                  Delivered Order #{reviewModalProduct.orderNumber}
+                </span>
+                <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '17px', color: '#111827', margin: '2px 0 0 0' }}>
+                  {reviewModalProduct.productName}
+                </h3>
+              </div>
+            </div>
+
+            <div style={{ borderTop: '1px solid #F3F4F6', paddingTop: '16px', marginBottom: '18px' }}>
+              <span style={{ fontSize: '12px', fontWeight: 700, color: '#374151', display: 'block', marginBottom: '8px' }}>
+                Your Star Rating
+              </span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                {[1, 2, 3, 4, 5].map((s) => (
+                  <button
+                    key={s}
+                    type="button"
+                    onClick={() => setReviewRating(s)}
+                    style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: '2px' }}
+                  >
+                    <Star
+                      size={26}
+                      fill={s <= reviewRating ? '#E59819' : 'none'}
+                      color={s <= reviewRating ? '#E59819' : '#D1D5DB'}
+                    />
+                  </button>
+                ))}
+                <span style={{ fontSize: '13px', fontWeight: 600, color: '#560067', marginLeft: '6px' }}>
+                  {reviewRating === 5 && 'Outstanding & Consecrated'}
+                  {reviewRating === 4 && 'Very Good Energy'}
+                  {reviewRating === 3 && 'Average'}
+                  {reviewRating <= 2 && 'Needs Improvement'}
+                </span>
+              </div>
+            </div>
+
+            {reviewSuccess && (
+              <div style={{ background: '#ECFDF5', color: '#065F46', border: '1px solid #A7F3D0', padding: '10px 14px', borderRadius: '8px', fontSize: '13px', marginBottom: '16px' }}>
+                {reviewSuccess}
+              </div>
+            )}
+
+            {reviewError && (
+              <div style={{ background: '#FEF2F2', color: '#991B1B', border: '1px solid #FECACA', padding: '10px 14px', borderRadius: '8px', fontSize: '13px', marginBottom: '16px' }}>
+                {reviewError}
+              </div>
+            )}
+
+            <form onSubmit={handleAccountReviewSubmit}>
+              <div style={{ marginBottom: '16px' }}>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#374151', marginBottom: '6px' }}>
+                  Your Experience &amp; Spiritual Energy Feedback
+                </label>
+                <textarea
+                  rows={4}
+                  required
+                  placeholder="Share how wearing this energized bracelet impacted your peace, aura, or daily intentions..."
+                  value={reviewComment}
+                  onChange={(e) => setReviewComment(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '10px 12px',
+                    borderRadius: '8px',
+                    border: '1px solid #D1D5DB',
+                    fontSize: '13px',
+                    outline: 'none',
+                    boxSizing: 'border-box',
+                    fontFamily: 'inherit',
+                  }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+                <button
+                  type="button"
+                  onClick={() => setReviewModalProduct(null)}
+                  style={{
+                    padding: '9px 16px',
+                    borderRadius: '8px',
+                    border: '1px solid #D1D5DB',
+                    background: '#FFFFFF',
+                    color: '#4B5563',
+                    fontSize: '13px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={submittingReview}
+                  style={{
+                    padding: '9px 20px',
+                    borderRadius: '8px',
+                    border: 'none',
+                    background: 'linear-gradient(135deg, #560067 0%, #3B0047 100%)',
+                    color: '#FFFFFF',
+                    fontSize: '13px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                  }}
+                >
+                  <Send size={14} />
+                  <span>{submittingReview ? 'Submitting...' : 'Post Verified Review'}</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       <Footer />
       <WhatsAppFloat />

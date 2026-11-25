@@ -175,15 +175,34 @@ export default function AddProductSection({ initialProduct, onCancel, onSuccess 
   const [manualUrl, setManualUrl] = useState('');
   const [uploadingImage, setUploadingImage] = useState(false);
 
-  // 3-Tier Pricing
+  // 3-Tier Pricing (Root, Aura, Divine) with Discounted & Original/Compare Prices
   const [rootPrice, setRootPrice] = useState(
     initialProduct?.rootPrice ? String(initialProduct.rootPrice) : initialProduct?.price ? String(initialProduct.price) : '799'
   );
+  const [rootComparePrice, setRootComparePrice] = useState(
+    initialProduct?.structuredContent?.tierOriginalPrices?.root
+      ? String(initialProduct.structuredContent.tierOriginalPrices.root)
+      : initialProduct?.compareAtPrice
+      ? String(initialProduct.compareAtPrice)
+      : '1199'
+  );
+
   const [auraPrice, setAuraPrice] = useState(
     initialProduct?.auraPrice ? String(initialProduct.auraPrice) : '1199'
   );
+  const [auraComparePrice, setAuraComparePrice] = useState(
+    initialProduct?.structuredContent?.tierOriginalPrices?.aura
+      ? String(initialProduct.structuredContent.tierOriginalPrices.aura)
+      : '1699'
+  );
+
   const [divinePrice, setDivinePrice] = useState(
     initialProduct?.divinePrice ? String(initialProduct.divinePrice) : '1599'
+  );
+  const [divineComparePrice, setDivineComparePrice] = useState(
+    initialProduct?.structuredContent?.tierOriginalPrices?.divine
+      ? String(initialProduct.structuredContent.tierOriginalPrices.divine)
+      : '2299'
   );
 
   // Energy Activation Ritual
@@ -464,6 +483,16 @@ export default function AddProductSection({ initialProduct, onCancel, onSuccess 
             answer: item.answer.trim(),
           }))
           .filter((item) => item.question && item.answer),
+        tierOriginalPrices: {
+          root: Number(rootComparePrice) || 0,
+          aura: Number(auraComparePrice) || 0,
+          divine: Number(divineComparePrice) || 0,
+        },
+        tierDiscountPrices: {
+          root: Number(rootPrice) || 0,
+          aura: Number(auraPrice) || 0,
+          divine: Number(divinePrice) || 0,
+        },
         media: mediaList.map((m, idx) => ({
           id: m.id,
           url: m.url,
@@ -491,6 +520,7 @@ export default function AddProductSection({ initialProduct, onCancel, onSuccess 
           shortDescription: emotionalHook || productSummary.slice(0, 140),
           description: productSummary,
           price: Number(rootPrice) || 799,
+          compareAtPrice: Number(rootComparePrice) || null,
           rootPrice: Number(rootPrice) || 799,
           auraPrice: Number(auraPrice) || 1199,
           divinePrice: Number(divinePrice) || 1599,
@@ -768,38 +798,95 @@ export default function AddProductSection({ initialProduct, onCancel, onSuccess 
         <div className={styles.sectionBox}>
           <h3 className={styles.sectionHeading}>
             <CurrencyRupeeIcon fontSize="small" />
-            Pricing Tiers (Root, Aura, Divine) &amp; Energy Ritual
+            Pricing Tiers (Root, Aura, Divine) — Original &amp; Discounted Prices
           </h3>
-          <div className={styles.grid3} style={{ marginBottom: '1rem' }}>
-            <div className={styles.inputGroup}>
-              <label className={styles.label}>Root Price (₹)</label>
-              <input
-                type="number"
-                required
-                value={rootPrice}
-                onChange={(e) => setRootPrice(e.target.value)}
-                className={styles.input}
-              />
+          <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', margin: '-0.3rem 0 1rem 0' }}>
+            Set both the actual selling price (discounted) and the original compare price (MRP) for each energy edition.
+          </p>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1.2rem', marginBottom: '1.2rem' }}>
+            {/* Root Tier */}
+            <div style={{ background: '#FAF8FB', padding: '14px', borderRadius: '10px', border: '1px solid rgba(86, 0, 103, 0.12)' }}>
+              <strong style={{ fontSize: '13.5px', color: '#560067', display: 'block', marginBottom: '8px' }}>
+                1. Root Edition
+              </strong>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <div className={styles.inputGroup}>
+                  <label className={styles.label}>Discounted Price (₹)</label>
+                  <input
+                    type="number"
+                    required
+                    value={rootPrice}
+                    onChange={(e) => setRootPrice(e.target.value)}
+                    className={styles.input}
+                  />
+                </div>
+                <div className={styles.inputGroup}>
+                  <label className={styles.label}>Original MRP (₹)</label>
+                  <input
+                    type="number"
+                    value={rootComparePrice}
+                    onChange={(e) => setRootComparePrice(e.target.value)}
+                    className={styles.input}
+                  />
+                </div>
+              </div>
             </div>
-            <div className={styles.inputGroup}>
-              <label className={styles.label}>Aura Price (₹)</label>
-              <input
-                type="number"
-                required
-                value={auraPrice}
-                onChange={(e) => setAuraPrice(e.target.value)}
-                className={styles.input}
-              />
+
+            {/* Aura Tier */}
+            <div style={{ background: '#FAF8FB', padding: '14px', borderRadius: '10px', border: '1px solid rgba(86, 0, 103, 0.12)' }}>
+              <strong style={{ fontSize: '13.5px', color: '#560067', display: 'block', marginBottom: '8px' }}>
+                2. Aura Edition
+              </strong>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <div className={styles.inputGroup}>
+                  <label className={styles.label}>Discounted Price (₹)</label>
+                  <input
+                    type="number"
+                    required
+                    value={auraPrice}
+                    onChange={(e) => setAuraPrice(e.target.value)}
+                    className={styles.input}
+                  />
+                </div>
+                <div className={styles.inputGroup}>
+                  <label className={styles.label}>Original MRP (₹)</label>
+                  <input
+                    type="number"
+                    value={auraComparePrice}
+                    onChange={(e) => setAuraComparePrice(e.target.value)}
+                    className={styles.input}
+                  />
+                </div>
+              </div>
             </div>
-            <div className={styles.inputGroup}>
-              <label className={styles.label}>Divine Price (₹)</label>
-              <input
-                type="number"
-                required
-                value={divinePrice}
-                onChange={(e) => setDivinePrice(e.target.value)}
-                className={styles.input}
-              />
+
+            {/* Divine Tier */}
+            <div style={{ background: '#FAF8FB', padding: '14px', borderRadius: '10px', border: '1px solid rgba(86, 0, 103, 0.12)' }}>
+              <strong style={{ fontSize: '13.5px', color: '#560067', display: 'block', marginBottom: '8px' }}>
+                3. Divine Edition
+              </strong>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <div className={styles.inputGroup}>
+                  <label className={styles.label}>Discounted Price (₹)</label>
+                  <input
+                    type="number"
+                    required
+                    value={divinePrice}
+                    onChange={(e) => setDivinePrice(e.target.value)}
+                    className={styles.input}
+                  />
+                </div>
+                <div className={styles.inputGroup}>
+                  <label className={styles.label}>Original MRP (₹)</label>
+                  <input
+                    type="number"
+                    value={divineComparePrice}
+                    onChange={(e) => setDivineComparePrice(e.target.value)}
+                    className={styles.input}
+                  />
+                </div>
+              </div>
             </div>
           </div>
 

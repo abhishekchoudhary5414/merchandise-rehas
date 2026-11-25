@@ -34,8 +34,8 @@ export default function ShopProductCard({
   price,
   compareAtPrice,
   primaryImage,
-  rating = 4.9,
-  reviewCount = 108,
+  rating = 0,
+  reviewCount = 0,
   primaryCrystal,
   rulingPlanet,
   isBestSeller = false,
@@ -95,15 +95,24 @@ export default function ShopProductCard({
     e.stopPropagation();
     try {
       const cart = JSON.parse(localStorage.getItem('rehas_cart') || '[]');
-      const existingIdx = cart.findIndex((item: any) => item.id === id || item.slug === slug);
+      const existingIdx = cart.findIndex((item: any) => 
+        (item.productId && item.productId === id) || 
+        (item.id && item.id === id) || 
+        item.slug === slug
+      );
 
       if (existingIdx > -1) {
         cart[existingIdx].quantity = (Number(cart[existingIdx].quantity) || 1) + 1;
+        // ensure price is up to date
+        cart[existingIdx].unitPrice = price;
+        cart[existingIdx].price = price;
       } else {
         cart.push({
+          productId: id,
           id,
           name,
           slug,
+          unitPrice: price,
           price,
           image: effectiveImage,
           quantity: 1,
@@ -175,14 +184,25 @@ export default function ShopProductCard({
 
       {/* Card Details Body */}
       <div className={styles.cardBody}>
-        {/* Astrological / Crystal Sub-heading */}
+        {/* Astrological / Crystal Luxury Chips */}
         <div className={styles.astrologyMeta}>
           {primaryCrystal ? (
-            <span>💎 {primaryCrystal}</span>
+            <span className={styles.crystalPill}>
+              <Sparkles size={11} className={styles.metaSparkle} />
+              <span className={styles.pillText}>{primaryCrystal}</span>
+            </span>
           ) : (
-            <span>💎 Natural Healing Gemstone</span>
+            <span className={styles.crystalPill}>
+              <Sparkles size={11} className={styles.metaSparkle} />
+              <span className={styles.pillText}>Certified Crystal</span>
+            </span>
           )}
-          {rulingPlanet && <span>• 🪐 {rulingPlanet}</span>}
+          {rulingPlanet && (
+            <span className={styles.planetPill}>
+              <span className={styles.planetIcon}>🪐</span>
+              <span className={styles.pillText}>{rulingPlanet}</span>
+            </span>
+          )}
         </div>
 
         {/* Product Title */}
@@ -192,13 +212,21 @@ export default function ShopProductCard({
 
         {/* Rating Section (Flipkart Signature Green Pill) */}
         <div className={styles.ratingSection}>
-          <span className={styles.ratingPill}>
-            <span>{rating}</span>
-            <Star size={10} fill="#FFFFFF" />
-          </span>
-          <span className={styles.reviewCount}>
-            ({reviewCount.toLocaleString('en-IN')} ratings)
-          </span>
+          {reviewCount > 0 ? (
+            <>
+              <span className={styles.ratingPill}>
+                <span>{rating > 0 ? rating.toFixed(1) : '5.0'}</span>
+                <Star size={10} fill="#FFFFFF" />
+              </span>
+              <span className={styles.reviewCount}>
+                ({reviewCount.toLocaleString('en-IN')} {reviewCount === 1 ? 'rating' : 'ratings'})
+              </span>
+            </>
+          ) : (
+            <span style={{ fontSize: '11.5px', color: '#9CA3AF' }}>
+              No ratings yet
+            </span>
+          )}
         </div>
 
         {/* Pricing Layout */}

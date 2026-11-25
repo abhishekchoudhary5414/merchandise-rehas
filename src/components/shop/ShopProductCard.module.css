@@ -136,13 +136,54 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 11.5px;
-  color: #7C3AED;
-  font-weight: 600;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.crystalPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: linear-gradient(135deg, rgba(86, 0, 103, 0.06) 0%, rgba(216, 184, 120, 0.12) 100%);
+  color: #560067;
+  border: 1px solid rgba(86, 0, 103, 0.14);
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  max-width: 100%;
+}
+
+.metaSparkle {
+  color: #D8B878;
+  flex-shrink: 0;
+}
+
+.planetPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #FAF8FB;
+  color: #6B21A8;
+  border: 1px solid rgba(107, 33, 168, 0.15);
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+}
+
+.planetIcon {
+  font-size: 11px;
+  line-height: 1;
+}
+
+.pillText {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  max-width: 140px;
 }
 
 .cardTitle {
