@@ -110,7 +110,7 @@ export default async function HomePage() {
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '28px' }}>
-              {bestSellers.map((prod) => (
+              {(newArrivals.length > 0 ? newArrivals : bestSellers).slice(0, 4).map((prod) => (
                 <ProductCard
                   key={prod.id}
                   id={prod.id}

@@ -1,33 +1,45 @@
 import React from 'react';
 import Link from 'next/link';
-import { Sparkles, Sun, ShieldCheck } from 'lucide-react';
+import { Sparkles, Sun, ShieldCheck, ArrowRight } from 'lucide-react';
 import styles from './AboutBrand.module.css';
 
 export default function AboutBrand() {
   return (
     <section className={styles.section}>
       <div className={styles.container}>
-        <div className={styles.imageGrid}>
+        <div className={styles.visualColumn}>
           <div className={styles.primaryImageWrap}>
             <img
-              src="https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&w=800&q=80"
-              alt="REHAS Astrological Energy Cleansing"
+              src="/images/rehas-philosophy.jpg"
+              alt="REHAS Vedic Crystal Consecration"
+              className={styles.image}
+            />
+            <div className={styles.imageOverlay} />
+          </div>
+
+          <div className={styles.secondaryImageWrap}>
+            <img
+              src="/images/courses/astrology.jpg"
+              alt="Vedic Astrology & Natural Gemstones"
               className={styles.image}
             />
           </div>
-          <div className={styles.secondaryImageWrap}>
-            <img
-              src="https://images.unsplash.com/photo-1600003014755-ba31aa59c4b6?auto=format&fit=crop&w=600&q=80"
-              alt="Raw Pyrite & Sulemani Hakik Crystals"
-              className={styles.image}
-            />
+
+          <div className={styles.floatingBadge}>
+            <Sparkles size={16} className={styles.floatingBadgeIcon} />
+            <div>
+              <strong>Prana-Pratishtha</strong>
+              <span>Vedic Mantra Energized</span>
+            </div>
           </div>
         </div>
 
         <div className={styles.textContent}>
-          <span className={styles.subtitle}>The REHAS Philosophy</span>
+          <span className={styles.subtitle}>
+            <Sparkles size={13} /> The REHAS Philosophy
+          </span>
           <h2 className={styles.title}>Cosmic Alignment, Crafted with Vedic Integrity</h2>
-          
+
           <p className={styles.lead}>
             REHAS bridges ancient Vedic astrology, planetary gemstone science, and modern conscious living.
           </p>
@@ -38,14 +50,18 @@ export default function AboutBrand() {
 
           <div className={styles.highlights}>
             <div className={styles.highlightItem}>
-              <Sun size={20} className={styles.highlightIcon} />
+              <div className={styles.highlightIconWrap}>
+                <Sun size={20} className={styles.highlightIcon} />
+              </div>
               <div>
                 <strong>Kundli Alignment</strong>
                 <p>Curated to soothe malefic planetary transits (Shani, Rahu, Mangal).</p>
               </div>
             </div>
             <div className={styles.highlightItem}>
-              <ShieldCheck size={20} className={styles.highlightIcon} />
+              <div className={styles.highlightIconWrap}>
+                <ShieldCheck size={20} className={styles.highlightIcon} />
+              </div>
               <div>
                 <strong>Certified Authenticity</strong>
                 <p>100% natural, unheated, undyed gemstone beads with certificate.</p>
@@ -54,7 +70,8 @@ export default function AboutBrand() {
           </div>
 
           <Link href="/shop" className={styles.btn}>
-            Discover the Collection
+            <span>Discover the Collection</span>
+            <ArrowRight size={16} />
           </Link>
         </div>
       </div>

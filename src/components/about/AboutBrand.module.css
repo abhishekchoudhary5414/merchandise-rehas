@@ -1,6 +1,6 @@
 .section {
   padding: 100px 24px;
-  background: var(--surface);
+  background: linear-gradient(180deg, var(--surface) 0%, #FAF5FC 100%);
   border-bottom: 1px solid var(--border);
 }
 
@@ -8,35 +8,79 @@
   max-width: var(--container-width);
   margin: 0 auto;
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr 1.08fr;
   align-items: center;
-  gap: 70px;
+  gap: 72px;
 }
 
-.imageGrid {
+.visualColumn {
   position: relative;
   display: flex;
+  padding-bottom: 28px;
 }
 
 .primaryImageWrap {
-  width: 80%;
-  aspect-ratio: 4/5;
-  border-radius: var(--radius-lg);
+  position: relative;
+  width: 82%;
+  aspect-ratio: 4 / 5;
+  border-radius: 22px;
   overflow: hidden;
-  box-shadow: 0 16px 40px rgba(86, 0, 103, 0.15);
-  border: 4px solid #ffffff;
+  box-shadow: 0 20px 48px rgba(57, 0, 68, 0.18);
+  border: 3px solid #ffffff;
+}
+
+.imageOverlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(57, 0, 68, 0.25) 0%, transparent 45%);
+  pointer-events: none;
 }
 
 .secondaryImageWrap {
   position: absolute;
-  width: 55%;
-  aspect-ratio: 1/1;
-  bottom: -30px;
+  width: 48%;
+  aspect-ratio: 1 / 1;
+  bottom: 0;
   right: 0;
-  border-radius: var(--radius-lg);
+  border-radius: 18px;
   overflow: hidden;
-  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.2);
-  border: 4px solid #ffffff;
+  box-shadow: 0 16px 38px rgba(32, 0, 40, 0.24);
+  border: 3px solid var(--secondary);
+  background: #390044;
+}
+
+.floatingBadge {
+  position: absolute;
+  top: 22px;
+  right: 12px;
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(216, 184, 120, 0.55);
+  border-radius: 14px;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 10px 28px rgba(86, 0, 103, 0.14);
+}
+
+.floatingBadgeIcon {
+  color: var(--secondary);
+  flex-shrink: 0;
+}
+
+.floatingBadge strong {
+  display: block;
+  font-size: 12.5px;
+  font-weight: 800;
+  color: var(--primary);
+  line-height: 1.2;
+}
+
+.floatingBadge span {
+  display: block;
+  font-size: 11px;
+  color: var(--text-secondary);
 }
 
 .image {
@@ -52,6 +96,10 @@
 }
 
 .subtitle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: fit-content;
   font-size: 12px;
   font-weight: 700;
   text-transform: uppercase;
@@ -69,70 +117,113 @@
 }
 
 .lead {
-  font-size: 16px;
+  font-size: 16.5px;
   font-weight: 600;
   color: var(--primary-dark);
   line-height: 1.6;
   margin: 0;
+  padding-left: 14px;
+  border-left: 3px solid var(--secondary);
 }
 
 .body {
   font-size: 15px;
-  line-height: 1.7;
+  line-height: 1.75;
   color: var(--text-secondary);
   margin: 0;
 }
 
 .highlights {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  margin: 10px 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin: 8px 0;
 }
 
 .highlightItem {
   display: flex;
   align-items: flex-start;
-  gap: 14px;
+  gap: 12px;
+  padding: 14px;
+  background: #ffffff;
+  border: 1px solid rgba(86, 0, 103, 0.1);
+  border-radius: 14px;
+  box-shadow: 0 4px 14px rgba(86, 0, 103, 0.04);
+}
+
+.highlightIconWrap {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: #FAF5FC;
+  border: 1px solid rgba(216, 184, 120, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.highlightIcon {
+  color: var(--primary);
 }
 
 .highlightItem strong {
   display: block;
-  font-size: 14px;
+  font-size: 13.5px;
+  font-weight: 700;
   color: var(--text-primary);
 }
 
 .highlightItem p {
-  font-size: 13px;
+  font-size: 12.5px;
   color: var(--text-secondary);
-  margin: 2px 0 0;
-}
-
-.highlightIcon {
-  color: var(--secondary);
-  flex-shrink: 0;
-  margin-top: 2px;
+  margin: 3px 0 0;
+  line-height: 1.45;
 }
 
 .btn {
-  background: var(--primary);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, var(--primary) 0%, #76008E 100%);
   color: #ffffff;
   padding: 14px 28px;
   border-radius: var(--radius-md);
-  font-weight: 600;
+  font-weight: 700;
+  font-size: 14.5px;
   text-decoration: none;
   width: fit-content;
-  margin-top: 8px;
-  transition: all 0.2s;
+  margin-top: 6px;
+  box-shadow: 0 8px 22px rgba(86, 0, 103, 0.22);
+  transition: all 0.25s ease;
 }
 
 .btn:hover {
-  background: var(--primary-dark);
+  background: linear-gradient(135deg, var(--primary-dark) 0%, #560067 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 26px rgba(86, 0, 103, 0.3);
 }
 
 @media (max-width: 992px) {
+  .section {
+    padding: 72px 20px;
+  }
   .container {
     grid-template-columns: 1fr;
-    gap: 60px;
+    gap: 52px;
+  }
+  .title {
+    font-size: 30px;
+  }
+}
+
+@media (max-width: 560px) {
+  .highlights {
+    grid-template-columns: 1fr;
+  }
+  .floatingBadge {
+    top: 12px;
+    right: 6px;
+    padding: 8px 10px;
   }
 }
