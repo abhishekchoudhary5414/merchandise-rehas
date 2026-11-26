@@ -4,12 +4,12 @@ import styles from './InstagramGallery.module.css';
 
 export default function InstagramGallery() {
   const images = [
-    'https://images.unsplash.com/photo-1611591475847-f8eec4a022b7?auto=format&fit=crop&w=600&q=80',
-    'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=600&q=80',
-    'https://images.unsplash.com/photo-1600003014755-ba31aa59c4b6?auto=format&fit=crop&w=600&q=80',
-    'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?auto=format&fit=crop&w=600&q=80',
-    'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&w=600&q=80',
-    'https://images.unsplash.com/photo-1602751584552-8ba73aad10e1?auto=format&fit=crop&w=600&q=80',
+    { src: '/images/gallery/bracelet-1.jpg', alt: 'Tiger Eye Crystal Bracelet' },
+    { src: '/images/gallery/bracelet-2.jpg', alt: 'Natural Amethyst Crystal Bracelet' },
+    { src: '/images/gallery/bracelet-3.jpg', alt: 'Pyrite & Citrine Money Magnet Bracelet' },
+    { src: '/images/gallery/bracelet-4.jpg', alt: 'Rose Quartz Heart Chakra Bracelet' },
+    { src: '/images/gallery/bracelet-5.jpg', alt: 'Sulemani Hakik & Black Obsidian Shield Bracelet' },
+    { src: '/images/gallery/bracelet-6.jpg', alt: '7-Chakra & Rudraksha Consecrated Bracelet' },
   ];
 
   return (
@@ -24,7 +24,7 @@ export default function InstagramGallery() {
         </div>
 
         <div className={styles.gallery}>
-          {images.map((src, idx) => (
+          {images.map((item, idx) => (
             <a
               key={idx}
               href="https://www.instagram.com/rehas.in"
@@ -32,7 +32,7 @@ export default function InstagramGallery() {
               rel="noopener noreferrer"
               className={styles.imageCard}
             >
-              <img src={src} alt={`REHAS Community Bracelet ${idx + 1}`} className={styles.image} />
+              <img src={item.src} alt={item.alt} className={styles.image} />
               <div className={styles.overlay}>
                 <Camera size={26} className={styles.instaIcon} />
                 <span className={styles.viewText}>View on Instagram</span>

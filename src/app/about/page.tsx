@@ -1,6 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { Metadata } from 'next';
+import { prisma } from '@/lib/prisma';
 import AnnouncementBar from '@/components/announcement-bar/AnnouncementBar';
 import Navbar from '@/components/navbar/Navbar';
 import Footer from '@/components/footer/Footer';
@@ -41,7 +42,9 @@ export const metadata: Metadata = {
   },
 };
 
-export default function AboutPage() {
+export const revalidate = 60;
+
+export default async function AboutPage() {
   const pillars = [
     {
       icon: <Gem className={styles.pillarIcon} size={28} />,
@@ -88,32 +91,32 @@ export default function AboutPage() {
     },
   ];
 
-  const categories = [
-    {
-      name: 'Money Magnet Bracelets',
-      tag: 'Wealth & Prosperity',
-      desc: 'Peruvian Pyrite, Citrine & Green Aventurine designed to open solar plexus abundance and dissolve debt stagnation.',
-      href: '/shop?category=wealth-abundance',
-    },
-    {
-      name: 'Navgrah Planetary Kadas',
-      tag: 'Astrological Equilibrium',
-      desc: 'Harmonize the nine celestial grahas with nine consecrated planetary stones and certified Rudrakshas.',
-      href: '/shop?category=planetary-navgrah',
-    },
-    {
-      name: 'Sulemani Hakik Shield',
-      tag: 'Nazar & Evil Eye Defense',
-      desc: 'Deep black Agate providing a psychic firewall against toxic envy, black energy, and Saturnian malefic transit.',
-      href: '/shop?category=evil-eye-nazar-suraksha',
-    },
-    {
-      name: 'Venus & Heart Chakra',
-      tag: 'Love, Marriage & Peace',
-      desc: 'Rose Quartz & Morganite soothing emotional heartache, fostering tender romantic attraction, and calming stress.',
-      href: '/shop?category=love-harmony-venus',
-    },
-  ];
+  let dbCategories: Array<{
+    id: string;
+    name: string;
+    slug: string;
+    description: string | null;
+    _count: { products: number };
+  }> = [];
+
+  try {
+    dbCategories = await prisma.category.findMany({
+      include: { _count: { select: { products: true } } },
+      orderBy: { createdAt: 'asc' },
+      take: 8,
+    });
+  } catch {
+    dbCategories = [];
+  }
+
+  const categories = dbCategories.map((c) => ({
+    name: c.name,
+    tag: `${c._count.products} ${c._count.products === 1 ? 'Product' : 'Products'}`,
+    desc:
+      c.description ||
+      'Consecrated natural crystal & Vedic merchandise curated for planetary alignment and spiritual balance.',
+    href: `/shop?category=${c.slug}`,
+  }));
 
   return (
     <div className={styles.aboutWrapper}>

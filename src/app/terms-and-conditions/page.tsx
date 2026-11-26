@@ -1,119 +1,188 @@
 import React from 'react';
 import Link from 'next/link';
 import { Metadata } from 'next';
+import {
+  Scale,
+  FileText,
+  Sparkles,
+  IndianRupee,
+  Truck,
+  RotateCcw,
+  Landmark,
+  ArrowRight,
+} from 'lucide-react';
 import AnnouncementBar from '@/components/announcement-bar/AnnouncementBar';
 import Navbar from '@/components/navbar/Navbar';
 import Footer from '@/components/footer/Footer';
 import WhatsAppFloat from '@/components/whatsapp/WhatsAppFloat';
 import BreadcrumbNav from '@/components/common/BreadcrumbNav';
-import GavelOutlinedIcon from '@mui/icons-material/GavelOutlined';
-import AutoAwesomeOutlinedIcon from '@mui/icons-material/AutoAwesomeOutlined';
-import LocalShippingOutlinedIcon from '@mui/icons-material/LocalShippingOutlined';
-import VerifiedUserOutlinedIcon from '@mui/icons-material/VerifiedUserOutlined';
-import AssignmentReturnOutlinedIcon from '@mui/icons-material/AssignmentReturnOutlined';
-import PolicyOutlinedIcon from '@mui/icons-material/PolicyOutlined';
+import siteConfig from '@/data/site-config.json';
+import styles from '@/components/common/PolicyPage.module.css';
 
 export const metadata: Metadata = {
   title: 'Terms & Conditions | REHAS Sacred Merchandise',
-  description: 'Patron terms and conditions for ordering consecrated Vedic crystal bracelets, energization rituals, delivery timelines, and jurisdictional governance.',
+  description:
+    'Patron terms and conditions for ordering consecrated Vedic crystal bracelets, energization rituals, delivery timelines, and jurisdictional governance.',
 };
+
+const SECTIONS = [
+  { id: 'agreement', label: 'Agreement to Terms' },
+  { id: 'consecration', label: 'Vedic Consecration & Crystals' },
+  { id: 'pricing', label: 'Pricing & GST Compliance' },
+  { id: 'shipping', label: 'Shipping & Doorstep Delivery' },
+  { id: 'returns', label: 'Returns & Damage Claims' },
+  { id: 'jurisdiction', label: 'Governing Law & Jurisdiction' },
+];
 
 export default function TermsAndConditionsPage() {
   return (
-    <>
+    <div className={styles.pageWrap}>
       <AnnouncementBar />
       <Navbar />
 
-      <main className="min-h-screen bg-[#FDFBF7] text-stone-800 py-10 px-4 md:px-8">
-        <div className="max-w-4xl mx-auto space-y-8">
-          <BreadcrumbNav
-            items={[
-              { label: 'Home', href: '/' },
-              { label: 'Terms & Conditions', href: '/terms-and-conditions' },
-            ]}
-          />
+      <main className={styles.main}>
+        <section className={styles.heroBanner}>
+          <div className={styles.heroInner}>
+            <div className={styles.breadcrumbWrap}>
+              <BreadcrumbNav
+                items={[
+                  { label: 'Home', href: '/' },
+                  { label: 'Terms & Conditions', href: '/terms-and-conditions' },
+                ]}
+              />
+            </div>
 
-          <div className="border-b border-stone-200 pb-6">
-            <span className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-[#560067] bg-[#FAF2FC] px-3 py-1 rounded-full mb-3">
-              <GavelOutlinedIcon style={{ fontSize: 16 }} /> Legal &amp; Spiritual Agreement
+            <span className={styles.heroBadge}>
+              <Scale size={13} /> Legal &amp; Spiritual Agreement
             </span>
-            <h1 className="text-3xl md:text-4xl font-serif font-bold text-[#560067] tracking-tight mb-2">
-              Terms &amp; Sacred Conditions
-            </h1>
-            <p className="text-sm md:text-base text-stone-600">
-              Effective Date: November 2026 • Governed by the laws of India and the jurisdiction of Patna Courts, Bihar.
+            <h1 className={styles.heroTitle}>Terms &amp; Sacred Conditions</h1>
+            <p className={styles.heroSubtitle}>
+              Effective Date: November 2026 · Governed by the laws of the Republic of India and the exclusive jurisdiction of Patna Courts, Bihar.
             </p>
           </div>
+        </section>
 
-          <div className="bg-white p-6 md:p-10 rounded-2xl border border-stone-200 shadow-sm space-y-8 text-sm md:text-base text-stone-700 leading-relaxed">
-            {/* 1. Introduction */}
-            <section className="space-y-3">
-              <h2 className="text-lg md:text-xl font-serif font-bold text-[#560067] flex items-center gap-2">
-                <PolicyOutlinedIcon className="text-[#560067]" /> 1. Agreement to Terms
-              </h2>
-              <p>
-                By visiting, browsing, or purchasing consecrated merchandise from <strong>REHAS</strong> (hereinafter referred to as &ldquo;REHAS&rdquo;, &ldquo;we&rdquo;, or &ldquo;our&rdquo;), you agree to be bound by these Terms and Conditions, our Privacy Policy, and our 7-Day Doorstep Replacement Guidelines.
+        <div className={styles.contentContainer}>
+          <aside className={styles.sidebar}>
+            <div className={styles.sidebarCard}>
+              <h2 className={styles.sidebarHeading}>On This Page</h2>
+              <ul className={styles.tocList}>
+                {SECTIONS.map((sec, idx) => (
+                  <li key={sec.id}>
+                    <a href={`#${sec.id}`} className={styles.tocLink}>
+                      <span className={styles.tocNum}>{idx + 1}</span>
+                      <span>{sec.label}</span>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className={styles.sidebarCard}>
+              <h2 className={styles.sidebarHeading}>Related Policies</h2>
+              <div className={styles.relatedLinks}>
+                <Link href="/privacy-policy" className={styles.relatedLink}>
+                  <span>Privacy &amp; Sacred Policy</span>
+                  <ArrowRight size={14} />
+                </Link>
+              </div>
+            </div>
+          </aside>
+
+          <article className={styles.policyCard}>
+            <section id="agreement" className={styles.sectionBlock}>
+              <div className={styles.sectionHeader}>
+                <span className={styles.sectionIconWrap}>
+                  <FileText size={18} />
+                </span>
+                <h2 className={styles.sectionTitle}>1. Agreement to Terms</h2>
+              </div>
+              <p className={styles.paragraph}>
+                By visiting, browsing, or purchasing consecrated merchandise from{' '}
+                <strong>{siteConfig.brand.name} {siteConfig.brand.subName}</strong> (hereinafter referred to as &ldquo;REHAS&rdquo;, &ldquo;we&rdquo;, or &ldquo;our&rdquo;), you agree to be bound by these Terms and Conditions, our{' '}
+                <Link href="/privacy-policy">Privacy Policy</Link>, and our 7-Day Doorstep Replacement Guidelines.
               </p>
             </section>
 
-            {/* 2. Nature of Sacred Consecration */}
-            <section className="space-y-3 border-t border-stone-100 pt-6">
-              <h2 className="text-lg md:text-xl font-serif font-bold text-[#560067] flex items-center gap-2">
-                <AutoAwesomeOutlinedIcon className="text-[#560067]" /> 2. Nature of Vedic Consecration &amp; Crystals
-              </h2>
-              <p>
-                • <strong>Natural Mineral Inclusions:</strong> Every crystal bracelet is assembled using 100% genuine earth-mined stones (Pyrite, Sulemani Hakik, Citrine, Tiger Eye, etc.). Natural inclusions, slight color shifts, and minor bead variations are inherent signs of genuine natural formation and are not considered manufacturing defects.
-              </p>
-              <p>
-                • <strong>Spiritual Energization (Prana Pratishtha):</strong> Items undergo purification with holy Ganga Jal and planetary mantra activation in our Patna sanctum. While based on classical Vedic traditions, crystal energy and astrological remedies are spiritual aids and should not substitute for licensed medical, psychological, financial, or legal advice.
+            <section id="consecration" className={styles.sectionBlock}>
+              <div className={styles.sectionHeader}>
+                <span className={styles.sectionIconWrap}>
+                  <Sparkles size={18} />
+                </span>
+                <h2 className={styles.sectionTitle}>2. Nature of Vedic Consecration &amp; Crystals</h2>
+              </div>
+              <ul className={styles.bulletList}>
+                <li>
+                  <strong>Natural Mineral Inclusions:</strong> Every crystal bracelet is assembled using 100% genuine earth-mined stones (Pyrite, Sulemani Hakik, Citrine, Tiger Eye, Amethyst, etc.). Natural inclusions, slight color shifts, and minor bead variations are inherent signs of authentic natural formation and are not defects.
+                </li>
+                <li>
+                  <strong>Spiritual Energization (Prana Pratishtha):</strong> Items undergo purification with holy Ganga Jal and planetary beeja mantra activation in our Patna sanctum. While rooted in classical Vedic traditions, crystal energy and astrological remedies are spiritual aids and do not substitute for licensed medical, psychological, financial, or legal advice.
+                </li>
+              </ul>
+            </section>
+
+            <section id="pricing" className={styles.sectionBlock}>
+              <div className={styles.sectionHeader}>
+                <span className={styles.sectionIconWrap}>
+                  <IndianRupee size={18} />
+                </span>
+                <h2 className={styles.sectionTitle}>3. Pricing &amp; GST Compliance</h2>
+              </div>
+              <p className={styles.paragraph}>
+                All prices are stated in Indian Rupees (INR, ₹). In compliance with Indian tax statutes, prices shown are MRP inclusive of applicable Goods and Services Tax (GST) under GSTIN <strong>{siteConfig.brand.gstin}</strong>. Complimentary express shipping applies on eligible orders above our free-shipping threshold across all serviceable Indian PIN codes.
               </p>
             </section>
 
-            {/* 3. Pricing & Indian Taxes */}
-            <section className="space-y-3 border-t border-stone-100 pt-6">
-              <h2 className="text-lg md:text-xl font-serif font-bold text-[#560067] flex items-center gap-2">
-                <VerifiedUserOutlinedIcon className="text-[#560067]" /> 3. Pricing &amp; GST Compliance
-              </h2>
-              <p>
-                All prices are stated in Indian Rupees (INR, ₹). In compliance with Indian tax statutes, prices shown are MRP inclusive of 18% Goods and Services Tax (GST). Delivery charges are complimentary on orders above ₹999 across all Indian PIN codes.
+            <section id="shipping" className={styles.sectionBlock}>
+              <div className={styles.sectionHeader}>
+                <span className={styles.sectionIconWrap}>
+                  <Truck size={18} />
+                </span>
+                <h2 className={styles.sectionTitle}>4. Shipping &amp; Doorstep Delivery</h2>
+              </div>
+              <p className={styles.paragraph}>
+                Orders are ritually consecrated and dispatched within 24 to 48 business hours from our sanctum in Patna, Bihar. Consignments are handled by premier Indian logistics partners. Delivery typically arrives within 2–5 business days depending on your destination PIN code.
               </p>
             </section>
 
-            {/* 4. Delivery & Pan-India Dispatch */}
-            <section className="space-y-3 border-t border-stone-100 pt-6">
-              <h2 className="text-lg md:text-xl font-serif font-bold text-[#560067] flex items-center gap-2">
-                <LocalShippingOutlinedIcon className="text-[#560067]" /> 4. Shipping &amp; Doorstep Delivery
-              </h2>
-              <p>
-                Orders are ritually consecrated and dispatched within 24 to 48 business hours from our sanctum in Patna, Bihar. Consignments are handled by premier logistics carriers (Shiprocket, Bluedart, Delhivery). Delivery typically arrives within 2–5 business days depending on destination PIN code.
+            <section id="returns" className={styles.sectionBlock}>
+              <div className={styles.sectionHeader}>
+                <span className={styles.sectionIconWrap}>
+                  <RotateCcw size={18} />
+                </span>
+                <h2 className={styles.sectionTitle}>5. Returns &amp; Damage Claim Policy</h2>
+              </div>
+              <p className={styles.paragraph}>
+                We offer a 7-day doorstep replacement window for any piece that arrives damaged, defective, or incorrect during transit. To preserve spiritual sanctity, items must remain unused and in their original packaging.
               </p>
+              <div className={styles.calloutBox}>
+                <p>
+                  <strong>Need to report a transit issue?</strong> Share unboxing/parcel photos within 48 hours of delivery:
+                </p>
+                <p>
+                  Helpline / WhatsApp: <a href={`tel:${siteConfig.contact.rawPhone}`}>{siteConfig.contact.phone}</a> · Email:{' '}
+                  <a href={`mailto:${siteConfig.contact.email}`}>{siteConfig.contact.email}</a>
+                </p>
+              </div>
             </section>
 
-            {/* 5. Returns & Spiritual Sanctity */}
-            <section className="space-y-3 border-t border-stone-100 pt-6">
-              <h2 className="text-lg md:text-xl font-serif font-bold text-[#560067] flex items-center gap-2">
-                <AssignmentReturnOutlinedIcon className="text-[#560067]" /> 5. Returns &amp; Damage Claim Policy
-              </h2>
-              <p>
-                We offer a hassle-free 7-day doorstep replacement window for any piece that arrives damaged, defective, or incorrect during postal transit. To ensure spiritual sanctity, items must be in their original packaging. Please share parcel photographs with our helpline at <strong>+91 9517973153</strong> or <strong>merchandise.rehas@gmail.com</strong> within 48 hours of delivery.
+            <section id="jurisdiction" className={styles.sectionBlock}>
+              <div className={styles.sectionHeader}>
+                <span className={styles.sectionIconWrap}>
+                  <Landmark size={18} />
+                </span>
+                <h2 className={styles.sectionTitle}>6. Governing Law &amp; Jurisdiction</h2>
+              </div>
+              <p className={styles.paragraph}>
+                These Terms shall be interpreted and enforced strictly in accordance with the laws of the Republic of India. In the event of any legal dispute, courts situated exclusively in <strong>{siteConfig.contact.address.city}, {siteConfig.contact.address.state}, {siteConfig.contact.address.country}</strong> shall have sole jurisdiction.
               </p>
             </section>
-
-            {/* 6. Jurisdiction */}
-            <section className="space-y-3 border-t border-stone-100 pt-6">
-              <h2 className="text-lg md:text-xl font-serif font-bold text-[#560067] flex items-center gap-2">
-                <GavelOutlinedIcon className="text-[#560067]" /> 6. Governing Law &amp; Jurisdiction
-              </h2>
-              <p>
-                These Terms shall be interpreted and enforced strictly in accordance with the laws of the Republic of India. In the event of any legal dispute, courts situated exclusively in <strong>Patna, Bihar, India</strong> shall have sole jurisdiction.
-              </p>
-            </section>
-          </div>
+          </article>
         </div>
       </main>
 
       <Footer />
       <WhatsAppFloat />
-    </>
+    </div>
   );
 }

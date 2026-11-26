@@ -6,8 +6,6 @@ import {
   MapPin,
   PhoneCall,
   Clock,
-  ShieldCheck,
-  Truck,
   CheckCircle2,
   Lock,
 } from 'lucide-react';
@@ -85,15 +83,15 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Sacred Categories */}
+          {/* Sacred Courses */}
           <div>
-            <h4 className={styles.heading}>Sacred Categories</h4>
+            <h4 className={styles.heading}>Sacred Courses</h4>
             <ul className={styles.linkList}>
-              <li><Link href="/shop?category=wealth-abundance">Money Magnet Bracelets</Link></li>
-              <li><Link href="/shop?category=planetary-navgrah">Navgrah &amp; Planetary Kadas</Link></li>
-              <li><Link href="/shop?category=evil-eye-nazar-suraksha">Sulemani Hakik Nazar Shield</Link></li>
-              <li><Link href="/shop?category=numerology-mulank">Mulank 1 to 9 Remedies</Link></li>
-              <li><Link href="/shop?category=love-harmony-venus">Venus &amp; Heart Chakra Stones</Link></li>
+              <li><a href="https://www.rehas.in/courses/healing" target="_blank" rel="noopener noreferrer">Healing Courses</a></li>
+              <li><a href="https://www.rehas.in/courses/therapy" target="_blank" rel="noopener noreferrer">Therapy Courses</a></li>
+              <li><a href="https://www.rehas.in/courses/astrology" target="_blank" rel="noopener noreferrer">Astrology Courses</a></li>
+              <li><a href="https://www.rehas.in/courses/myt" target="_blank" rel="noopener noreferrer">M.Y.T. Wisdom</a></li>
+              <li><a href="https://www.rehas.in/courses/mind-reading" target="_blank" rel="noopener noreferrer">Mind Reading Courses</a></li>
             </ul>
           </div>
 
@@ -105,8 +103,6 @@ export default function Footer() {
               <li><Link href="/blog">Vedic Astrology &amp; Articles</Link></li>
               <li><Link href="/partners">Partners &amp; Canonical Network</Link></li>
               <li><Link href="/track-order">Track Indian Courier Status</Link></li>
-              <li><Link href="/shipping-policy">Shipping &amp; Delivery Rates</Link></li>
-              <li><Link href="/returns-refunds">7-Day Doorstep Returns</Link></li>
               <li><Link href="/privacy-policy">Privacy &amp; Sacred Policy</Link></li>
               <li><Link href="/terms-and-conditions">Terms &amp; Conditions</Link></li>
             </ul>
@@ -140,11 +136,15 @@ export default function Footer() {
             </span>
             <span>•</span>
             <span className={styles.badgeItem}>
-              <Truck size={12} /> Shiprocket Pan-India
-            </span>
-            <span>•</span>
-            <span className={styles.badgeItem}>
-              <ShieldCheck size={12} /> Certified Natural Crystals
+              Powered by{' '}
+              <a
+                href="https://www.anksquare.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className={styles.contactLink}
+              >
+                www.anksquare.com
+              </a>
             </span>
           </div>
         </div>
