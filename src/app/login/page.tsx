@@ -14,14 +14,12 @@ import {
   ArrowRight,
   ArrowLeft,
   CheckCircle2,
-  KeyRound,
   ShoppingBag,
   Heart,
   Truck,
   LogOut,
   Sparkles,
   ShieldCheck,
-  Send,
 } from 'lucide-react';
 import AnnouncementBar from '@/components/announcement-bar/AnnouncementBar';
 import Navbar from '@/components/navbar/Navbar';
@@ -32,18 +30,29 @@ import styles from './AuthPage.module.css';
 
 type Mode = 'LOGIN' | 'REGISTER' | 'FORGOT_REQUEST' | 'FORGOT_VERIFY';
 
+interface AuthUser {
+  id?: string;
+  name?: string;
+  email?: string;
+  role?: string;
+}
+
+function getErrorMessage(err: unknown, fallback: string): string {
+  return err instanceof Error ? err.message : fallback;
+}
+
 function CustomerAuthPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const tabParam = searchParams.get('tab');
   const redirectParam = searchParams.get('redirect');
   const [mode, setMode] = useState<Mode>(tabParam === 'register' ? 'REGISTER' : 'LOGIN');
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
   const [checkingSession, setCheckingSession] = useState(true);
 
   // Determine safe redirect destination
   // If user is registering, always land directly on their /account page unless explicitly specified
-  const getRedirectUrl = (currentMode: Mode) => {
+  const getRedirectUrl = () => {
     if (redirectParam && redirectParam.startsWith('/')) {
       return redirectParam;
     }
@@ -62,7 +71,6 @@ function CustomerAuthPage() {
   // OTP State for Registration
   const [registerStep, setRegisterStep] = useState<1 | 2 | 3>(1);
   const [registerOtp, setRegisterOtp] = useState('');
-  const [otpSent, setOtpSent] = useState(false);
   const [sendingOtp, setSendingOtp] = useState(false);
   const [resendCountdown, setResendCountdown] = useState(0);
 
@@ -76,13 +84,15 @@ function CustomerAuthPage() {
 
   // Resend Countdown Timer
   useEffect(() => {
-    let timer: any;
+    let timer: ReturnType<typeof setInterval> | undefined;
     if (resendCountdown > 0) {
       timer = setInterval(() => {
         setResendCountdown((prev) => prev - 1);
       }, 1000);
     }
-    return () => clearInterval(timer);
+    return () => {
+      if (timer) clearInterval(timer);
+    };
   }, [resendCountdown]);
 
   useEffect(() => {
@@ -116,10 +126,10 @@ function CustomerAuthPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Sign in failed');
       setUser(data.user);
-      router.push(getRedirectUrl('LOGIN'));
+      router.push(getRedirectUrl());
       router.refresh();
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, 'Sign in failed'));
     } finally {
       setLoading(false);
     }
@@ -150,12 +160,11 @@ function CustomerAuthPage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to send OTP');
-      setOtpSent(true);
       setResendCountdown(60);
       setSuccess(data.message || `Verification code sent to ${email}`);
       setRegisterStep(2);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, 'Failed to send OTP'));
     } finally {
       setSendingOtp(false);
     }
@@ -211,8 +220,8 @@ function CustomerAuthPage() {
       // Successful account creation ALWAYS redirects to /account
       router.push('/account');
       router.refresh();
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, 'Registration failed'));
     } finally {
       setLoading(false);
     }
@@ -233,8 +242,8 @@ function CustomerAuthPage() {
       if (!res.ok) throw new Error(data.error || 'Failed to send OTP');
       setSuccess(data.message || `OTP sent to ${email}`);
       setMode('FORGOT_VERIFY');
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, 'Failed to send OTP'));
     } finally {
       setLoading(false);
     }
@@ -258,8 +267,8 @@ function CustomerAuthPage() {
       setPassword('');
       setForgotOtp('');
       setNewPassword('');
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, 'Reset failed'));
     } finally {
       setLoading(false);
     }
@@ -282,7 +291,7 @@ function CustomerAuthPage() {
 
       <main className={styles.main}>
         {checkingSession ? (
-          <div style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>
+          <div className={styles.loadingMessage}>
             Loading your sanctuary...
           </div>
         ) : user ? (
@@ -290,7 +299,7 @@ function CustomerAuthPage() {
             <div className={styles.avatarCircle}>
               {user.name ? user.name[0].toUpperCase() : 'R'}
             </div>
-            <h1 className={styles.formTitle} style={{ marginBottom: '4px' }}>
+            <h1 className={`${styles.formTitle} ${styles.welcomeTitle}`}>
               Welcome back, {user.name}!
             </h1>
             <p className={styles.formSubtitle}>{user.email}</p>
@@ -616,8 +625,7 @@ function CustomerAuthPage() {
                       <button
                         type="submit"
                         disabled={sendingOtp || !email || !name}
-                        className={styles.submitBtn}
-                        style={{ marginTop: '0.5rem', padding: '0.95rem 1.5rem' }}
+                        className={`${styles.submitBtn} ${styles.registerContinueBtn}`}
                       >
                         {sendingOtp ? 'Sending Verification OTP...' : 'Continue to OTP Verification'} <ArrowRight size={16} />
                       </button>
@@ -631,12 +639,12 @@ function CustomerAuthPage() {
                         <span>
                           We sent a 6-digit verification code to <strong>{email}</strong>
                         </span>
-                        <span style={{ fontSize: '0.775rem', color: 'var(--text-secondary)' }}>
+                        <span className={styles.otpHintSubtext}>
                           Please enter the code to confirm your email address.
                         </span>
                       </div>
 
-                      <div className={styles.inputGroup} style={{ marginTop: '0.75rem' }}>
+                      <div className={`${styles.inputGroup} ${styles.otpInputGroup}`}>
                         <label className={styles.label}>Enter 6-Digit OTP *</label>
                         <input
                           type="text"
@@ -650,20 +658,12 @@ function CustomerAuthPage() {
                         />
                       </div>
 
-                      <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '0.35rem' }}>
+                      <div className={styles.resendRow}>
                         <button
                           type="button"
                           onClick={() => handleSendRegisterOtp()}
                           disabled={sendingOtp || resendCountdown > 0}
-                          style={{
-                            background: 'none',
-                            border: 'none',
-                            color: resendCountdown > 0 ? 'var(--text-secondary)' : 'var(--primary)',
-                            fontSize: '0.825rem',
-                            fontWeight: 700,
-                            cursor: resendCountdown > 0 ? 'default' : 'pointer',
-                            padding: '4px 0',
-                          }}
+                          className={styles.resendBtn}
                         >
                           {sendingOtp
                             ? 'Sending...'
@@ -689,8 +689,7 @@ function CustomerAuthPage() {
                         <button
                           type="submit"
                           disabled={registerOtp.length !== 6}
-                          className={styles.submitBtn}
-                          style={{ flex: 1, marginTop: 0 }}
+                          className={`${styles.submitBtn} ${styles.stepSubmitBtn}`}
                         >
                           Verify & Set Password <ArrowRight size={16} />
                         </button>
@@ -701,16 +700,16 @@ function CustomerAuthPage() {
                   {/* SECTION 3: CREATE & CONFIRM PASSWORD */}
                   {registerStep === 3 && (
                     <form onSubmit={handleRegister}>
-                      <div className={styles.otpHintBox} style={{ background: '#ECFDF5', borderColor: '#A7F3D0', color: '#065F46' }}>
-                        <span style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 700 }}>
-                          <CheckCircle2 size={16} color="#047857" /> Email Verified ({email})
+                      <div className={`${styles.otpHintBox} ${styles.otpVerifiedBox}`}>
+                        <span className={styles.otpVerifiedHeader}>
+                          <CheckCircle2 size={16} className={styles.otpVerifiedIcon} /> Email Verified ({email})
                         </span>
-                        <span style={{ fontSize: '0.775rem' }}>
+                        <span className={styles.otpVerifiedSubtext}>
                           Now choose a secure password to finalize your account.
                         </span>
                       </div>
 
-                      <div className={styles.inputGroup} style={{ marginTop: '0.75rem' }}>
+                      <div className={`${styles.inputGroup} ${styles.otpInputGroup}`}>
                         <label className={styles.label}>Create Password (Min 6 chars) *</label>
                         <div className={styles.inputWrap}>
                           <Lock size={16} className={styles.inputIcon} />
@@ -773,8 +772,7 @@ function CustomerAuthPage() {
                         <button
                           type="submit"
                           disabled={loading || password.length < 6 || password !== confirmPassword}
-                          className={styles.submitBtn}
-                          style={{ flex: 1, marginTop: 0 }}
+                          className={`${styles.submitBtn} ${styles.stepSubmitBtn}`}
                         >
                           {loading ? 'Finalizing Account...' : 'Create Account & Sign In'}
                         </button>
@@ -794,19 +792,7 @@ function CustomerAuthPage() {
                       setError(null);
                       setSuccess(null);
                     }}
-                    style={{
-                      background: 'none',
-                      border: 'none',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '4px',
-                      color: 'var(--primary)',
-                      cursor: 'pointer',
-                      fontSize: '0.85rem',
-                      fontWeight: 700,
-                      padding: 0,
-                      marginBottom: '0.5rem',
-                    }}
+                    className={styles.backToLoginBtn}
                   >
                     <ArrowLeft size={16} /> Back to Sign In
                   </button>
@@ -854,7 +840,7 @@ function CustomerAuthPage() {
                       placeholder="e.g. 123456"
                       value={forgotOtp}
                       onChange={(e) => setForgotOtp(e.target.value.replace(/\D/g, ''))}
-                      className={styles.otpInput}
+                      className={styles.otpInputBig}
                     />
                   </div>
 
@@ -892,8 +878,7 @@ function CustomerAuthPage() {
                       setError(null);
                       setSuccess(null);
                     }}
-                    className={styles.forgotLink}
-                    style={{ textAlign: 'center', marginTop: '0.5rem', alignSelf: 'center' }}
+                    className={`${styles.forgotLink} ${styles.forgotResendLink}`}
                   >
                     Change Email / Resend Code
                   </button>
@@ -912,7 +897,7 @@ function CustomerAuthPage() {
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={<div style={{ minHeight: '100vh', background: 'var(--background)' }} />}>
+    <Suspense fallback={<div className={styles.suspenseFallback} />}>
       <CustomerAuthPage />
     </Suspense>
   );

@@ -656,3 +656,103 @@
   background: #DC2626;
   color: #ffffff;
 }
+
+/* Additional utility & layout classes (replacing inline styles) */
+.suspenseFallback {
+  min-height: 100vh;
+  background: var(--background);
+}
+
+.loadingMessage {
+  text-align: center;
+  color: var(--text-secondary);
+}
+
+.welcomeTitle {
+  margin-bottom: 4px;
+}
+
+.registerContinueBtn {
+  margin-top: 0.5rem;
+  padding: 0.95rem 1.5rem;
+}
+
+.otpHintSubtext {
+  font-size: 0.775rem;
+  color: var(--text-secondary);
+}
+
+.otpInputGroup {
+  margin-top: 0.75rem;
+}
+
+.resendRow {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 0.35rem;
+}
+
+.resendBtn {
+  background: none;
+  border: none;
+  color: var(--primary);
+  font-size: 0.825rem;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 4px 0;
+}
+
+.resendBtn:disabled {
+  color: var(--text-secondary);
+  cursor: default;
+}
+
+.stepSubmitBtn {
+  flex: 1;
+  margin-top: 0;
+}
+
+.otpVerifiedBox {
+  background: #ECFDF5;
+  border-color: #A7F3D0;
+  color: #065F46;
+}
+
+.otpVerifiedHeader {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
+}
+
+.otpVerifiedIcon {
+  color: #047857;
+}
+
+.otpVerifiedSubtext {
+  font-size: 0.775rem;
+}
+
+.backToLoginBtn {
+  background: none;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--primary);
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 700;
+  padding: 0;
+  margin-bottom: 0.5rem;
+}
+
+.backToLoginBtn:hover {
+  text-decoration: underline;
+}
+
+.forgotResendLink {
+  text-align: center;
+  margin-top: 0.5rem;
+  align-self: center;
+}
