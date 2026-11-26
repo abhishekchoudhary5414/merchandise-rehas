@@ -130,7 +130,7 @@ export default async function HomePage() {
 
             <div style={{ textAlign: 'center', marginTop: '40px' }}>
               <Link href="/shop" className="brand-btn-primary">
-                View All 12+ Sacred Bracelets →
+                View All →
               </Link>
             </div>
           </div>
