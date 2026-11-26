@@ -12,6 +12,7 @@ import VisibilityOffOutlinedIcon from '@mui/icons-material/VisibilityOffOutlined
 import VerifiedUserOutlinedIcon from '@mui/icons-material/VerifiedUserOutlined';
 import LogoutIcon from '@mui/icons-material/Logout';
 import RefreshIcon from '@mui/icons-material/Refresh';
+import siteConfig from '@/data/site-config.json';
 import styles from './AccountSection.module.css';
 
 interface AuthSessionItem {
@@ -82,7 +83,7 @@ export default function AccountSection({ onActivity }: AccountSectionProps) {
 
   // Profile state
   const [name, setName] = useState('REHAS Admin');
-  const [email] = useState('merchandise.rehas@gmail.com');
+  const [email] = useState(siteConfig.contact.email);
   const [phone, setPhone] = useState('+91 98765 43210');
   const [role] = useState('Super Admin');
   const [savingProfile, setSavingProfile] = useState(false);

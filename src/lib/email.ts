@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer';
+import siteConfig from '@/data/site-config.json';
 
 /**
  * Professional Branded HTML Email Service
@@ -26,8 +27,8 @@ function createTransporter() {
   });
 }
 
-const BRAND_NAME = 'REHAS Sacred Merchandise';
-const FROM_EMAIL = process.env.SMTP_FROM_EMAIL || 'care@rehas.in';
+const BRAND_NAME = `${siteConfig.brand.name} ${siteConfig.brand.subName}`;
+const FROM_EMAIL = process.env.SMTP_FROM_EMAIL || siteConfig.contact.email;
 const PRIMARY_COLOR = '#560067';
 const GOLD_COLOR = '#D8B878';
 

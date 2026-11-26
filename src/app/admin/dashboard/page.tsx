@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import siteConfig from '@/data/site-config.json';
 import AdminLayout from '@/components/admin/layout/AdminLayout';
 import { DashboardSection } from '@/components/admin/layout/Sidebar';
 import WelcomeSection from '@/components/admin/dashboard/WelcomeSection';
@@ -127,7 +128,7 @@ export default function AdminDashboardMainPage() {
     {
       id: 'init-1',
       title: 'Admin Session Started',
-      description: 'merchandise.rehas@gmail.com signed in to REHAS Merchandise Admin.',
+      description: `${siteConfig.contact.email} signed in to REHAS Merchandise Admin.`,
       type: 'security',
       timestamp: 'Just now',
       unread: true,

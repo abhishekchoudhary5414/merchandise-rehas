@@ -4,9 +4,9 @@ import StoreSync from '@/components/common/StoreSync';
 import { SITE_NAME, SITE_URL } from '@/lib/seo-helpers';
 import './globals.css';
 
-const SITE_TITLE = 'REHAS Sacred Merchandise | Vedic Astrology & Crystal Energy Bracelets';
+const SITE_TITLE = 'REHAS | Vedic Astrology & Crystal Energy Bracelets';
 const SITE_DESCRIPTION =
-  'Consecrated natural crystal bracelets tuned to your Kundli, Mulank, and Chakras. Free express doorstep delivery across India with 100% secured payments.';
+  'Consecrated natural crystal bracelets tuned to your Kundli & Mulank. Certified gemstones with pan-India delivery.';
 
 export const metadata: Metadata = {
   title: SITE_TITLE,
@@ -24,7 +24,7 @@ export const metadata: Metadata = {
     type: 'website',
     images: [
       {
-        url: '/og-image.png',
+        url: `${SITE_URL}/og-image.png`,
         width: 1200,
         height: 630,
         alt: SITE_TITLE,
@@ -35,7 +35,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: SITE_TITLE,
     description: SITE_DESCRIPTION,
-    images: ['/og-image.png'],
+    images: [`${SITE_URL}/og-image.png`],
   },
   verification: {
     google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION || undefined,

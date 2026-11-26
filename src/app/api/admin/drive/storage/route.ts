@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { google } from 'googleapis';
 import { prisma } from '@/lib/prisma';
+import siteConfig from '@/data/site-config.json';
 
 export async function GET() {
   try {
@@ -81,7 +82,7 @@ export async function GET() {
     // 2. Try fetching live Google Drive storage quota if credentials & network allow
     let totalStorageBytes = 15 * 1024 * 1024 * 1024; // Default Google Drive Free 15 GB
     let usedStorageBytes = estimatedBytes;
-    let driveEmail = 'merchandise.rehas@gmail.com';
+    let driveEmail = siteConfig.contact.email;
     let folderId = process.env.GOOGLE_DRIVE_FOLDER_ID || '1ZI4__1WdzC5NvbTN0mfdeH2WOtX-VXLR';
     let isConnected = Boolean(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_REFRESH_TOKEN);
 

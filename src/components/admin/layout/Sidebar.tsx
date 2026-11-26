@@ -231,7 +231,7 @@ export default function Sidebar({
             {!collapsed && (
               <div className={styles.profileMeta}>
                 <span className={styles.profileName}>REHAS Admin</span>
-                <span className={styles.profileEmail}>merchandise.rehas@gmail.com</span>
+                <span className={styles.profileEmail}>{siteConfig.contact.email}</span>
               </div>
             )}
           </div>
