@@ -99,7 +99,7 @@ export default function Hero() {
                 <span>Explore Sacred Collection</span>
                 <ArrowRight size={18} />
               </Link>
-              <Link href="/shop?category=wealth-abundance" className={styles.ctaSecondary}>
+              <Link href="/shop?category=wealth-prosperity-981&page=1" className={styles.ctaSecondary}>
                 <span>Money Magnet Bracelets</span>
               </Link>
             </div>
