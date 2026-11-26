@@ -619,7 +619,19 @@ export default function AddProductSection({ initialProduct, onCancel, onSuccess 
                 <div key={item.id} className={styles.mediaCard}>
                   <div className={styles.mediaThumbWrap}>
                     {item.type === 'video' ? (
-                      <video src={item.previewUrl || item.url} className={styles.mediaThumb} controls muted />
+                      <video
+                        src={
+                          item.previewUrl ||
+                          (item.fileId && !item.fileId.startsWith('mock_')
+                            ? `/api/media/${item.fileId}`
+                            : item.url)
+                        }
+                        className={styles.mediaThumb}
+                        controls
+                        muted
+                        playsInline
+                        preload="metadata"
+                      />
                     ) : (
                       <img
                         src={item.previewUrl || item.url}

@@ -35,6 +35,17 @@ interface MediaItem {
   fileId?: string;
 }
 
+function resolveVideoUrl(item?: MediaItem): string {
+  if (!item) return '';
+  if (item.url?.startsWith('/api/media/')) return item.url;
+  const match = item.url?.match(/googleusercontent\.com\/d\/([^=/?]+)/);
+  const id = item.fileId || match?.[1];
+  if (id && !id.startsWith('mock_')) {
+    return `/api/media/${id}`;
+  }
+  return item.url;
+}
+
 interface ProductDetailClientProps {
   product: any;
   freeShippingThreshold?: number;
@@ -254,7 +265,13 @@ export default function ProductDetailClient({
                       className={`${styles.thumbBtn} ${idx === selectedMediaIdx ? styles.thumbBtnActive : ''}`}
                     >
                       {m.type === 'video' ? (
-                        <video src={m.url} className={styles.thumbImg} muted />
+                        <video
+                          src={resolveVideoUrl(m)}
+                          className={styles.thumbImg}
+                          muted
+                          playsInline
+                          preload="metadata"
+                        />
                       ) : (
                         <img
                           src={m.url}
@@ -322,7 +339,17 @@ export default function ProductDetailClient({
                 )}
 
                 {activeMedia?.type === 'video' ? (
-                  <video src={activeMedia.url} className={styles.mainMedia} controls autoPlay muted loop />
+                  <video
+                    key={resolveVideoUrl(activeMedia)}
+                    src={resolveVideoUrl(activeMedia)}
+                    className={styles.mainMedia}
+                    controls
+                    autoPlay
+                    muted
+                    loop
+                    playsInline
+                    preload="metadata"
+                  />
                 ) : (
                   <img
                     src={activeMedia?.url}

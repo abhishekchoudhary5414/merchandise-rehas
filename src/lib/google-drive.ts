@@ -6,7 +6,7 @@ import { Readable } from 'stream';
  * Handles authenticated OAuth2 upload, subfolder management, and image link generation
  */
 
-function getDriveClient() {
+export function getDriveClient() {
   const clientId = process.env.GOOGLE_CLIENT_ID;
   const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
   const refreshToken = process.env.GOOGLE_REFRESH_TOKEN;
@@ -134,7 +134,10 @@ export async function uploadImageToDrive(
     });
 
     // Public thumbnail & direct streamable link
-    const viewLink = `https://lh3.googleusercontent.com/d/${fileId}=w1200`;
+    const isVideo = mimeType.startsWith('video/');
+    const viewLink = isVideo
+      ? `/api/media/${fileId}`
+      : `https://lh3.googleusercontent.com/d/${fileId}=w1200`;
     const thumbnailLink = `https://lh3.googleusercontent.com/d/${fileId}=w400`;
 
     return {
