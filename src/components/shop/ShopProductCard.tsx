@@ -2,15 +2,16 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { 
-  Star, 
-  ShoppingCart, 
-  Heart, 
-  ShieldCheck, 
-  Sparkles, 
+import {
+  Star,
+  ShoppingCart,
+  Heart,
+  ShieldCheck,
+  Sparkles,
   Check,
   ChevronRight
 } from 'lucide-react';
+import { addToCart, isInWishlist, toggleWishlistItem } from '@/lib/store-sync';
 import styles from './ShopProductCard.module.css';
 
 export interface ShopProductCardProps {
@@ -50,84 +51,46 @@ export default function ShopProductCard({
 
   // Sync wishlist status
   useEffect(() => {
-    try {
-      const saved = JSON.parse(localStorage.getItem('rehas_wishlist') || '[]');
-      if (Array.isArray(saved)) {
-        setIsWishlisted(saved.some((item: any) => item.id === id || item.slug === slug));
-      }
-    } catch {
-      // ignore
-    }
+    const syncWishlist = () => {
+      setIsWishlisted(isInWishlist(id) || isInWishlist(slug));
+    };
+    syncWishlist();
+    window.addEventListener('rehas_wishlist_updated', syncWishlist);
+    window.addEventListener('storage', syncWishlist);
+    return () => {
+      window.removeEventListener('rehas_wishlist_updated', syncWishlist);
+      window.removeEventListener('storage', syncWishlist);
+    };
   }, [id, slug]);
 
   function toggleWishlist(e: React.MouseEvent) {
     e.preventDefault();
     e.stopPropagation();
-    try {
-      const saved = JSON.parse(localStorage.getItem('rehas_wishlist') || '[]');
-      let updated = [];
-      if (isWishlisted) {
-        updated = saved.filter((item: any) => item.id !== id && item.slug !== slug);
-        setIsWishlisted(false);
-      } else {
-        updated = [
-          ...saved,
-          {
-            id,
-            name,
-            slug,
-            image: effectiveImage,
-            price,
-          },
-        ];
-        setIsWishlisted(true);
-      }
-      localStorage.setItem('rehas_wishlist', JSON.stringify(updated));
-      window.dispatchEvent(new Event('rehas_wishlist_updated'));
-      window.dispatchEvent(new Event('storage'));
-    } catch {
-      // ignore
-    }
+    const { wishlisted } = toggleWishlistItem({
+      id,
+      name,
+      slug,
+      image: effectiveImage,
+      price,
+    });
+    setIsWishlisted(wishlisted);
   }
 
   function handleAddToCart(e: React.MouseEvent) {
     e.preventDefault();
     e.stopPropagation();
-    try {
-      const cart = JSON.parse(localStorage.getItem('rehas_cart') || '[]');
-      const existingIdx = cart.findIndex((item: any) => 
-        (item.productId && item.productId === id) || 
-        (item.id && item.id === id) || 
-        item.slug === slug
-      );
-
-      if (existingIdx > -1) {
-        cart[existingIdx].quantity = (Number(cart[existingIdx].quantity) || 1) + 1;
-        // ensure price is up to date
-        cart[existingIdx].unitPrice = price;
-        cart[existingIdx].price = price;
-      } else {
-        cart.push({
-          productId: id,
-          id,
-          name,
-          slug,
-          unitPrice: price,
-          price,
-          image: effectiveImage,
-          quantity: 1,
-        });
-      }
-
-      localStorage.setItem('rehas_cart', JSON.stringify(cart));
-      window.dispatchEvent(new Event('rehas_cart_updated'));
-      window.dispatchEvent(new Event('storage'));
-
-      setIsAddedToCart(true);
-      setTimeout(() => setIsAddedToCart(false), 2000);
-    } catch {
-      // ignore
-    }
+    addToCart({
+      productId: id,
+      id,
+      name,
+      slug,
+      unitPrice: price,
+      price,
+      image: effectiveImage,
+      quantity: 1,
+    });
+    setIsAddedToCart(true);
+    setTimeout(() => setIsAddedToCart(false), 2000);
   }
 
   const discountPct = compareAtPrice && compareAtPrice > price

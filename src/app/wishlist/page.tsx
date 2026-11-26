@@ -9,52 +9,59 @@ import Footer from '@/components/footer/Footer';
 import WhatsAppFloat from '@/components/whatsapp/WhatsAppFloat';
 import BreadcrumbNav from '@/components/common/BreadcrumbNav';
 import { formatINR } from '@/lib/india-localization';
+import {
+  WishlistItem,
+  addToCart,
+  getWishlist,
+  removeFromWishlist as removeWishlistItem,
+  syncStoreFromServer,
+} from '@/lib/store-sync';
 import styles from './WishlistPage.module.css';
 
 export default function WishlistPage() {
-  const [items, setItems] = useState<any[]>([]);
+  const [items, setItems] = useState<WishlistItem[]>([]);
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
-    try {
-      const saved = JSON.parse(localStorage.getItem('rehas_wishlist') || '[]');
-      if (Array.isArray(saved)) setItems(saved);
-    } catch {
-      setItems([]);
-    } finally {
-      setLoaded(true);
+    let cancelled = false;
+
+    async function initWishlist() {
+      setItems(getWishlist());
+      await syncStoreFromServer();
+      if (!cancelled) {
+        setItems(getWishlist());
+        setLoaded(true);
+      }
     }
+
+    void initWishlist();
+
+    const handleUpdate = () => {
+      setItems(getWishlist());
+    };
+    window.addEventListener('rehas_wishlist_updated', handleUpdate);
+    window.addEventListener('storage', handleUpdate);
+
+    return () => {
+      cancelled = true;
+      window.removeEventListener('rehas_wishlist_updated', handleUpdate);
+      window.removeEventListener('storage', handleUpdate);
+    };
   }, []);
 
   function removeFromWishlist(id: string) {
-    const next = items.filter((it) => it.id !== id);
-    setItems(next);
-    localStorage.setItem('rehas_wishlist', JSON.stringify(next));
-    window.dispatchEvent(new Event('rehas_wishlist_updated'));
-    window.dispatchEvent(new Event('storage'));
+    setItems(removeWishlistItem(id));
   }
 
-  function moveToCart(item: any) {
-    try {
-      const cart = JSON.parse(localStorage.getItem('rehas_cart') || '[]');
-      const idx = cart.findIndex((c: any) => c.productId === item.id);
-      if (idx >= 0) {
-        cart[idx].quantity += 1;
-      } else {
-        cart.push({
-          productId: item.id,
-          name: item.name,
-          slug: item.slug,
-          image: item.image,
-          unitPrice: item.price || 499,
-          quantity: 1,
-        });
-      }
-      localStorage.setItem('rehas_cart', JSON.stringify(cart));
-      window.dispatchEvent(new Event('rehas_cart_updated'));
-    } catch {
-      // Ignore
-    }
+  function moveToCart(item: WishlistItem) {
+    addToCart({
+      productId: item.id,
+      name: item.name,
+      slug: item.slug,
+      image: item.image,
+      unitPrice: item.price || 499,
+      quantity: 1,
+    });
     removeFromWishlist(item.id);
   }
 

@@ -146,21 +146,26 @@ export async function DELETE(
   try {
     const { id } = await params;
     const existing = await prisma.product.findUnique({ where: { id } });
-    if (existing) {
-      const content = (existing.structuredContent as any) || {};
-      const media: any[] = Array.isArray(content.media) ? content.media : [];
-      for (const item of media) {
-        if (item.fileId) {
-          await deleteFileFromDrive(item.fileId);
-        }
+    if (!existing) {
+      return NextResponse.json({ error: 'Product not found' }, { status: 404 });
+    }
+
+    await prisma.$transaction(async (tx) => {
+      await tx.orderItem.deleteMany({ where: { productId: id } });
+      await tx.product.delete({ where: { id } });
+    });
+
+    const content = (existing.structuredContent as { media?: Array<{ fileId?: string }> }) || {};
+    const media = Array.isArray(content.media) ? content.media : [];
+    for (const item of media) {
+      if (item.fileId) {
+        await deleteFileFromDrive(item.fileId).catch(() => {});
       }
     }
 
-    await prisma.product.delete({
-      where: { id },
-    });
     return NextResponse.json({ success: true });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Failed to delete product';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

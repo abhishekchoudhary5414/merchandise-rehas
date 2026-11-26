@@ -16,6 +16,7 @@ import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import CircularProgress from '@mui/material/CircularProgress';
 import siteConfig from '@/data/site-config.json';
 import { formatINR } from '@/lib/india-localization';
+import { getCart, getWishlist } from '@/lib/store-sync';
 import styles from './Navbar.module.css';
 
 interface NavbarProps {
@@ -71,15 +72,9 @@ export default function Navbar({ cartCount = 0 }: NavbarProps) {
   // Sync Cart Counter
   useEffect(() => {
     function syncCart() {
-      try {
-        const items = JSON.parse(localStorage.getItem('rehas_cart') || '[]');
-        if (Array.isArray(items)) {
-          const total = items.reduce((s: number, it: any) => s + (Number(it.quantity) || 1), 0);
-          setLiveCartCount(total);
-        }
-      } catch {
-        setLiveCartCount(cartCount);
-      }
+      const items = getCart();
+      const total = items.reduce((s, it) => s + (Number(it.quantity) || 1), 0);
+      setLiveCartCount(total || cartCount);
     }
     syncCart();
     window.addEventListener('storage', syncCart);
@@ -93,14 +88,7 @@ export default function Navbar({ cartCount = 0 }: NavbarProps) {
   // Sync Wishlist Counter
   useEffect(() => {
     function syncWishlist() {
-      try {
-        const items = JSON.parse(localStorage.getItem('rehas_wishlist') || '[]');
-        if (Array.isArray(items)) {
-          setLiveWishlistCount(items.length);
-        }
-      } catch {
-        setLiveWishlistCount(0);
-      }
+      setLiveWishlistCount(getWishlist().length);
     }
     syncWishlist();
     window.addEventListener('storage', syncWishlist);

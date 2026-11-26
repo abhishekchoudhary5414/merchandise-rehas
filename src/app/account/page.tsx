@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { clearLocalStoreOnLogout, getWishlist, syncStoreFromServer } from '@/lib/store-sync';
 import { 
   User, 
   Package, 
@@ -179,14 +180,13 @@ export default function AccountPage() {
     }
   }
 
-  useEffect(() => { 
-    loadAccount(); 
-    try {
-      const saved = JSON.parse(localStorage.getItem('rehas_wishlist') || '[]');
-      if (Array.isArray(saved)) setWishlistCount(saved.length);
-    } catch {
-      setWishlistCount(0);
-    }
+  useEffect(() => {
+    loadAccount();
+    const syncWlCount = () => setWishlistCount(getWishlist().length);
+    syncWlCount();
+    void syncStoreFromServer().then(syncWlCount);
+    window.addEventListener('rehas_wishlist_updated', syncWlCount);
+    return () => window.removeEventListener('rehas_wishlist_updated', syncWlCount);
   }, []);
 
   async function saveAddress(e: React.FormEvent) {
@@ -278,6 +278,7 @@ export default function AccountPage() {
   async function logout() {
     try {
       localStorage.removeItem('rehas_account_cache');
+      clearLocalStoreOnLogout();
     } catch { /* ignore */ }
     await fetch('/api/auth/me', { method: 'DELETE' });
     router.replace('/login');

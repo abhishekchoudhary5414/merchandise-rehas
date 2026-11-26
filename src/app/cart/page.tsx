@@ -14,13 +14,21 @@ import Footer from '@/components/footer/Footer';
 import WhatsAppFloat from '@/components/whatsapp/WhatsAppFloat';
 import BreadcrumbNav from '@/components/common/BreadcrumbNav';
 import { formatINR } from '@/lib/india-localization';
+import {
+  CartItem,
+  getCart,
+  isInWishlist,
+  setCart,
+  syncStoreFromServer,
+  toggleWishlistItem,
+} from '@/lib/store-sync';
 import styles from './CartPage.module.css';
 
 export default function CartPage() {
   const router = useRouter();
-  const [items, setItems] = useState<any[]>([]);
+  const [items, setItems] = useState<CartItem[]>([]);
   const [loaded, setLoaded] = useState(false);
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<{ id?: string; name?: string; email?: string } | null>(null);
   const [authChecked, setAuthChecked] = useState(false);
 
   const [shippingConfig, setShippingConfig] = useState({
@@ -29,39 +37,47 @@ export default function CartPage() {
   });
 
   useEffect(() => {
-    let localItems: any[] = [];
-    try {
-      const saved = JSON.parse(localStorage.getItem('rehas_cart') || '[]');
-      if (Array.isArray(saved)) {
-        localItems = saved;
-        setItems(saved);
+    let cancelled = false;
+
+    async function initCart() {
+      const localItems = getCart();
+      setItems(localItems);
+
+      // Sync from server first if authenticated
+      await syncStoreFromServer();
+      const syncedItems = getCart();
+
+      if (!cancelled) {
+        setItems(syncedItems);
       }
-    } catch {
-      setItems([]);
+
+      // Live validation against DB so prices, titles, images, and stock are always 100% current
+      if (syncedItems.length > 0) {
+        try {
+          const r = await fetch('/api/cart/validate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ items: syncedItems }),
+          });
+          const data = await r.json();
+          if (!cancelled && data && Array.isArray(data.items)) {
+            setItems(data.items);
+            setCart(data.items, false);
+          }
+        } catch {
+          // Keep syncedItems
+        }
+      }
+
+      if (!cancelled) setLoaded(true);
     }
 
-    // Live validation against DB so prices, titles, images, and stock are always 100% current
-    if (localItems.length > 0) {
-      fetch('/api/cart/validate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ items: localItems }),
-      })
-        .then((r) => r.json())
-        .then((data) => {
-          if (data && Array.isArray(data.items)) {
-            setItems(data.items);
-            localStorage.setItem('rehas_cart', JSON.stringify(data.items));
-            window.dispatchEvent(new Event('rehas_cart_updated'));
-          }
-        })
-        .catch(() => {})
-        .finally(() => {
-          setLoaded(true);
-        });
-    } else {
-      setLoaded(true);
-    }
+    void initCart();
+
+    const handleCartUpdated = () => {
+      setItems(getCart());
+    };
+    window.addEventListener('rehas_cart_updated', handleCartUpdated);
 
     fetch('/api/admin/settings/shipping')
       .then((r) => r.json())
@@ -82,16 +98,20 @@ export default function CartPage() {
       })
       .catch(() => {})
       .finally(() => setAuthChecked(true));
+
+    return () => {
+      cancelled = true;
+      window.removeEventListener('rehas_cart_updated', handleCartUpdated);
+    };
   }, []);
 
-  function getItemPrice(it: any): number {
+  function getItemPrice(it: CartItem): number {
     return Number(it.unitPrice ?? it.price ?? 0);
   }
 
-  function syncCart(next: any[]) {
+  function syncCart(next: CartItem[]) {
     setItems(next);
-    localStorage.setItem('rehas_cart', JSON.stringify(next));
-    window.dispatchEvent(new Event('rehas_cart_updated'));
+    setCart(next, true);
   }
 
   function updateQty(idx: number, delta: number) {
@@ -107,20 +127,14 @@ export default function CartPage() {
 
   function moveToWishlist(idx: number) {
     const item = items[idx];
-    try {
-      const wl = JSON.parse(localStorage.getItem('rehas_wishlist') || '[]');
-      if (!wl.some((w: any) => w.id === item.productId)) {
-        wl.push({
-          id: item.productId,
-          name: item.name,
-          slug: item.slug,
-          price: item.unitPrice,
-          image: item.image,
-        });
-        localStorage.setItem('rehas_wishlist', JSON.stringify(wl));
-      }
-    } catch {
-      // Ignore
+    if (!isInWishlist(item.productId)) {
+      toggleWishlistItem({
+        id: item.productId,
+        name: item.name,
+        slug: item.slug,
+        price: item.unitPrice,
+        image: item.image,
+      });
     }
     removeItem(idx);
   }

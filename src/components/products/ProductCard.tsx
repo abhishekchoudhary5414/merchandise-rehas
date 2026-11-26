@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Star, ShoppingCart, Heart, ShieldCheck } from 'lucide-react';
+import { isInWishlist, toggleWishlistItem } from '@/lib/store-sync';
 import styles from './ProductCard.module.css';
 
 export interface ProductCardProps {
@@ -41,44 +42,29 @@ export default function ProductCard({
   }, [primaryImage]);
 
   useEffect(() => {
-    try {
-      const saved = JSON.parse(localStorage.getItem('rehas_wishlist') || '[]');
-      if (Array.isArray(saved)) {
-        setIsWishlisted(saved.some((item: any) => item.id === id || item.slug === slug));
-      }
-    } catch {
-      // ignore
-    }
+    const syncWishlist = () => {
+      setIsWishlisted(isInWishlist(id) || isInWishlist(slug));
+    };
+    syncWishlist();
+    window.addEventListener('rehas_wishlist_updated', syncWishlist);
+    window.addEventListener('storage', syncWishlist);
+    return () => {
+      window.removeEventListener('rehas_wishlist_updated', syncWishlist);
+      window.removeEventListener('storage', syncWishlist);
+    };
   }, [id, slug]);
 
   function toggleWishlist(e: React.MouseEvent) {
     e.preventDefault();
     e.stopPropagation();
-    try {
-      const saved = JSON.parse(localStorage.getItem('rehas_wishlist') || '[]');
-      let updated = [];
-      if (isWishlisted) {
-        updated = saved.filter((item: any) => item.id !== id && item.slug !== slug);
-        setIsWishlisted(false);
-      } else {
-        updated = [
-          ...saved,
-          {
-            id,
-            name,
-            slug,
-            image: imgSrc,
-            price,
-          },
-        ];
-        setIsWishlisted(true);
-      }
-      localStorage.setItem('rehas_wishlist', JSON.stringify(updated));
-      window.dispatchEvent(new Event('rehas_wishlist_updated'));
-      window.dispatchEvent(new Event('storage'));
-    } catch {
-      // ignore
-    }
+    const { wishlisted } = toggleWishlistItem({
+      id,
+      name,
+      slug,
+      image: imgSrc,
+      price,
+    });
+    setIsWishlisted(wishlisted);
   }
 
   const discountPct = compareAtPrice && compareAtPrice > price

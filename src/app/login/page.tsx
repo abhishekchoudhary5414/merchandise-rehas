@@ -26,6 +26,7 @@ import Navbar from '@/components/navbar/Navbar';
 import Footer from '@/components/footer/Footer';
 import WhatsAppFloat from '@/components/whatsapp/WhatsAppFloat';
 import siteConfig from '@/data/site-config.json';
+import { clearLocalStoreOnLogout, mergeLocalStoreWithServer } from '@/lib/store-sync';
 import styles from './AuthPage.module.css';
 
 type Mode = 'LOGIN' | 'REGISTER' | 'FORGOT_REQUEST' | 'FORGOT_VERIFY';
@@ -126,6 +127,7 @@ function CustomerAuthPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Sign in failed');
       setUser(data.user);
+      await mergeLocalStoreWithServer();
       router.push(getRedirectUrl());
       router.refresh();
     } catch (err: unknown) {
@@ -217,6 +219,7 @@ function CustomerAuthPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Registration failed');
       setUser(data.user);
+      await mergeLocalStoreWithServer();
       // Successful account creation ALWAYS redirects to /account
       router.push('/account');
       router.refresh();
@@ -277,6 +280,7 @@ function CustomerAuthPage() {
   async function handleLogout() {
     try {
       await fetch('/api/auth/me', { method: 'DELETE' });
+      clearLocalStoreOnLogout();
       setUser(null);
       router.refresh();
     } catch {

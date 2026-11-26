@@ -16,11 +16,32 @@ import {
   Package,
   Download,
   FileSpreadsheet,
+  Eye,
+  Printer,
+  X,
 } from 'lucide-react';
 import { formatINR } from '@/lib/india-localization';
 import TablePagination from '@/components/admin/common/TablePagination';
 import { exportToCSV, exportToXLSX } from '@/lib/export-utils';
+import siteConfig from '@/data/site-config.json';
 import styles from './OrdersSection.module.css';
+
+interface OrderLineItem {
+  id: string;
+  productId: string;
+  quantity: number;
+  price: number;
+  wristSize?: string | null;
+  product?: {
+    id: string;
+    name: string;
+    slug: string;
+    sku?: string;
+    primaryImage?: string;
+    beadSize?: string | null;
+    primaryCrystal?: string | null;
+  } | null;
+}
 
 interface OrderItem {
   id: string;
@@ -28,15 +49,24 @@ interface OrderItem {
   customerName: string;
   customerEmail: string;
   customerPhone: string;
+  flatBuilding?: string;
+  streetArea?: string;
+  landmark?: string | null;
   city: string;
   state: string;
   pinCode: string;
+  subtotal?: number;
+  discountAmount?: number;
+  couponCode?: string | null;
+  shippingFee?: number;
+  taxAmount?: number;
   totalAmount: number;
   paymentMethod: string;
   paymentStatus: string;
   shippingStatus: string;
   trackingNumber?: string | null;
   trackingCourier?: string | null;
+  items?: OrderLineItem[];
   createdAt: string;
 }
 
@@ -60,6 +90,10 @@ export default function OrdersSection({
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState<number | 'all'>(10);
+
+  // Modals state
+  const [detailOrder, setDetailOrder] = useState<OrderItem | null>(null);
+  const [labelOrder, setLabelOrder] = useState<OrderItem | null>(null);
 
   async function loadOrders() {
     setLoading(true);
@@ -498,18 +532,38 @@ export default function OrdersSection({
 
                       {/* Actions */}
                       <td>
-                        {isPaid && onRefundOrder ? (
+                        <div className={styles.actionsGroup}>
                           <button
                             type="button"
-                            onClick={() => onRefundOrder(o.id, o.totalAmount)}
-                            className={styles.refundBtn}
+                            onClick={() => setDetailOrder(o)}
+                            className={styles.iconActionBtn}
+                            title="View Purchased Products & Details"
+                            aria-label={`View order ${o.orderNumber} details`}
                           >
-                            <RotateCcw size={12} />
-                            <span>Refund</span>
+                            <Eye size={15} />
                           </button>
-                        ) : (
-                          <span style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>—</span>
-                        )}
+
+                          <button
+                            type="button"
+                            onClick={() => setLabelOrder(o)}
+                            className={styles.receiptActionBtn}
+                            title="Print Parcel Shipping Label & Receipt"
+                            aria-label={`Print shipping label for ${o.orderNumber}`}
+                          >
+                            <Printer size={15} />
+                          </button>
+
+                          {isPaid && onRefundOrder && (
+                            <button
+                              type="button"
+                              onClick={() => onRefundOrder(o.id, o.totalAmount)}
+                              className={styles.refundBtn}
+                            >
+                              <RotateCcw size={12} />
+                              <span>Refund</span>
+                            </button>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   );
@@ -530,6 +584,315 @@ export default function OrdersSection({
           onExportXLSX={handleExportXLSX}
         />
       </div>
+
+      {/* 1. ORDER DETAILS MODAL (EYE ICON) */}
+      {detailOrder && (
+        <div
+          className={styles.modalOverlay}
+          role="dialog"
+          aria-modal="true"
+          onClick={() => setDetailOrder(null)}
+        >
+          <div className={styles.modalCard} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.modalHeader}>
+              <div className={styles.modalTitleWrap}>
+                <h3 className={styles.modalTitle}>Order Details · {detailOrder.orderNumber}</h3>
+                <p className={styles.modalSubtitle}>
+                  Placed on{' '}
+                  {new Date(detailOrder.createdAt).toLocaleString('en-IN', {
+                    dateStyle: 'medium',
+                    timeStyle: 'short',
+                  })}{' '}
+                  · {detailOrder.paymentMethod} ({detailOrder.paymentStatus})
+                </p>
+              </div>
+              <button
+                type="button"
+                className={styles.modalCloseBtn}
+                onClick={() => setDetailOrder(null)}
+                aria-label="Close order details"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            <div className={styles.modalBody}>
+              <div>
+                <h4 className={styles.modalSectionTitle}>
+                  Purchased Products ({detailOrder.items?.length || 0})
+                </h4>
+                {!detailOrder.items || detailOrder.items.length === 0 ? (
+                  <div className={styles.detailBox}>No product line items recorded for this order.</div>
+                ) : (
+                  <div className={styles.purchasedList}>
+                    {detailOrder.items.map((item) => (
+                      <div key={item.id} className={styles.purchasedItemCard}>
+                        <img
+                          src={item.product?.primaryImage || '/images/rehas-logo.png'}
+                          alt={item.product?.name || 'Product'}
+                          className={styles.purchasedThumb}
+                        />
+                        <div className={styles.purchasedInfo}>
+                          <div className={styles.purchasedName}>
+                            {item.product?.name || 'Sacred Merchandise Item'}
+                          </div>
+                          <div className={styles.purchasedMeta}>
+                            {item.product?.sku && <span>SKU: {item.product.sku}</span>}
+                            {item.wristSize && <span>Size: {item.wristSize}</span>}
+                            {item.product?.primaryCrystal && (
+                              <span>Crystal: {item.product.primaryCrystal}</span>
+                            )}
+                            {item.product?.beadSize && <span>Bead: {item.product.beadSize}</span>}
+                          </div>
+                        </div>
+                        <div className={styles.purchasedPriceCol}>
+                          <span className={styles.purchasedLineTotal}>
+                            {formatINR(item.price * item.quantity)}
+                          </span>
+                          <span className={styles.purchasedUnitCalc}>
+                            {item.quantity} × {formatINR(item.price)}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className={styles.detailGrid}>
+                <div className={styles.detailBox}>
+                  <h4 className={styles.modalSectionTitle}>Patron & Delivery Address</h4>
+                  <strong>{detailOrder.customerName}</strong>
+                  <span>{detailOrder.customerPhone} · {detailOrder.customerEmail}</span>
+                  <span>
+                    {[detailOrder.flatBuilding, detailOrder.streetArea]
+                      .filter(Boolean)
+                      .join(', ')}
+                  </span>
+                  {detailOrder.landmark && <span>Landmark: {detailOrder.landmark}</span>}
+                  <span>
+                    {detailOrder.city}, {detailOrder.state} — <strong>{detailOrder.pinCode}</strong>
+                  </span>
+                  {detailOrder.trackingNumber && (
+                    <span>
+                      Courier: <strong>{detailOrder.trackingCourier || 'Shiprocket'}</strong> ({detailOrder.trackingNumber})
+                    </span>
+                  )}
+                </div>
+
+                <div className={styles.detailBox}>
+                  <h4 className={styles.modalSectionTitle}>Payment Breakdown</h4>
+                  <div className={styles.summaryRowLine}>
+                    <span>Subtotal</span>
+                    <span>{formatINR(detailOrder.subtotal ?? detailOrder.totalAmount)}</span>
+                  </div>
+                  {(detailOrder.discountAmount ?? 0) > 0 && (
+                    <div className={styles.summaryRowLine}>
+                      <span>Discount {detailOrder.couponCode ? `(${detailOrder.couponCode})` : ''}</span>
+                      <span>-{formatINR(detailOrder.discountAmount || 0)}</span>
+                    </div>
+                  )}
+                  <div className={styles.summaryRowLine}>
+                    <span>Shipping Fee</span>
+                    <span>
+                      {(detailOrder.shippingFee ?? 0) === 0
+                        ? 'FREE'
+                        : formatINR(detailOrder.shippingFee || 0)}
+                    </span>
+                  </div>
+                  {(detailOrder.taxAmount ?? 0) > 0 && (
+                    <div className={styles.summaryRowLine}>
+                      <span>GST / Tax</span>
+                      <span>{formatINR(detailOrder.taxAmount || 0)}</span>
+                    </div>
+                  )}
+                  <div className={styles.summaryTotalLine}>
+                    <span>Total Paid / Payable</span>
+                    <span>{formatINR(detailOrder.totalAmount)}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className={styles.modalFooter}>
+              <button
+                type="button"
+                className={styles.printBtn}
+                onClick={() => {
+                  const target = detailOrder;
+                  setDetailOrder(null);
+                  setLabelOrder(target);
+                }}
+              >
+                <Printer size={15} />
+                <span>Print Parcel Label</span>
+              </button>
+              <button
+                type="button"
+                className={styles.secondaryBtn}
+                onClick={() => setDetailOrder(null)}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 2. PRINTABLE PARCEL SHIPPING LABEL / RECEIPT MODAL */}
+      {labelOrder && (
+        <div
+          className={styles.modalOverlay}
+          role="dialog"
+          aria-modal="true"
+          onClick={() => setLabelOrder(null)}
+        >
+          <div className={styles.modalCard} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.modalHeader}>
+              <div className={styles.modalTitleWrap}>
+                <h3 className={styles.modalTitle}>Parcel Shipping Label & Receipt</h3>
+                <p className={styles.modalSubtitle}>
+                  Print and affix directly onto the dispatch parcel for {labelOrder.orderNumber}
+                </p>
+              </div>
+              <button
+                type="button"
+                className={styles.modalCloseBtn}
+                onClick={() => setLabelOrder(null)}
+                aria-label="Close shipping label"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            <div className={styles.modalBody}>
+              <div id="printable-parcel-label" className={styles.labelSheet}>
+                <div className={styles.labelTopBar}>
+                  <div className={styles.labelBrandBlock}>
+                    <img
+                      src={siteConfig.brand.logo}
+                      alt={siteConfig.brand.name}
+                      className={styles.labelLogo}
+                    />
+                    <div>
+                      <div className={styles.labelBrandName}>{siteConfig.brand.name}</div>
+                      <div className={styles.labelBrandSub}>{siteConfig.brand.subName}</div>
+                    </div>
+                  </div>
+                  <div className={styles.labelOrderMeta}>
+                    <span className={styles.labelOrderNum}>{labelOrder.orderNumber}</span>
+                    <span className={styles.labelPayBadge}>
+                      {labelOrder.paymentMethod === 'COD'
+                        ? `COD · COLLECT ${formatINR(labelOrder.totalAmount)}`
+                        : 'PREPAID · DO NOT COLLECT'}
+                    </span>
+                  </div>
+                </div>
+
+                <div className={styles.labelAddressGrid}>
+                  <div className={styles.labelToBlock}>
+                    <span className={styles.labelBlockTag}>Deliver To (Recipient)</span>
+                    <div className={styles.labelRecipientName}>{labelOrder.customerName}</div>
+                    <div className={styles.labelAddressText}>
+                      {[labelOrder.flatBuilding, labelOrder.streetArea]
+                        .filter(Boolean)
+                        .join(', ')}
+                    </div>
+                    {labelOrder.landmark && (
+                      <div className={styles.labelAddressText}>
+                        Landmark: {labelOrder.landmark}
+                      </div>
+                    )}
+                    <div className={styles.labelAddressText}>
+                      {labelOrder.city}, {labelOrder.state}
+                    </div>
+                    <div className={styles.labelPinCode}>PIN: {labelOrder.pinCode}</div>
+                    <div className={styles.labelAddressText}>
+                      <strong>Phone:</strong> {labelOrder.customerPhone}
+                    </div>
+                  </div>
+
+                  <div className={styles.labelFromBlock}>
+                    <span className={styles.labelBlockTag}>From (Sender / Return Address)</span>
+                    <div className={styles.labelFromText}>
+                      <strong>{siteConfig.contact.address.centerName}</strong>
+                    </div>
+                    <div className={styles.labelFromText}>{siteConfig.contact.address.street}</div>
+                    <div className={styles.labelFromText}>
+                      {siteConfig.contact.address.city}, {siteConfig.contact.address.state} -{' '}
+                      <strong>{siteConfig.contact.address.pinCode}</strong>
+                    </div>
+                    <div className={styles.labelFromText}>{siteConfig.contact.address.country}</div>
+                    <div className={styles.labelFromText}>
+                      <strong>Phone:</strong> {siteConfig.contact.phone}
+                    </div>
+                    <div className={styles.labelFromText}>
+                      <strong>GSTIN:</strong> {siteConfig.brand.gstin}
+                    </div>
+                  </div>
+                </div>
+
+                <div className={styles.labelItemsSection}>
+                  <table className={styles.labelItemsTable}>
+                    <thead>
+                      <tr>
+                        <th>Item Description</th>
+                        <th>Size</th>
+                        <th>Qty</th>
+                        <th>Amount</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {(labelOrder.items || []).map((item) => (
+                        <tr key={item.id}>
+                          <td>{item.product?.name || 'Sacred Merchandise'}</td>
+                          <td>{item.wristSize || 'Standard'}</td>
+                          <td>{item.quantity}</td>
+                          <td>{formatINR(item.price * item.quantity)}</td>
+                        </tr>
+                      ))}
+                      <tr>
+                        <td colSpan={3}>
+                          <strong>
+                            Total ({labelOrder.paymentMethod}) · Date:{' '}
+                            {new Date(labelOrder.createdAt).toLocaleDateString('en-IN')}
+                          </strong>
+                        </td>
+                        <td>
+                          <strong>{formatINR(labelOrder.totalAmount)}</strong>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                <div className={styles.labelFooter}>
+                  <span>SACRED MERCHANDISE · HANDLE WITH CARE</span>
+                  <span>{siteConfig.socials.website}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className={styles.modalFooter}>
+              <button
+                type="button"
+                className={styles.secondaryBtn}
+                onClick={() => setLabelOrder(null)}
+              >
+                Close
+              </button>
+              <button
+                type="button"
+                className={styles.printBtn}
+                onClick={() => window.print()}
+              >
+                <Printer size={15} />
+                <span>Print Parcel Label</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -13,9 +13,7 @@ export function middleware(request: NextRequest) {
     const adminToken = request.cookies.get('admin_token')?.value;
 
     if (!adminToken) {
-      const loginUrl = new URL('/admin/login', request.url);
-      loginUrl.searchParams.set('redirect', pathname);
-      return NextResponse.redirect(loginUrl);
+      return NextResponse.redirect(new URL('/admin/login', request.url));
     }
 
     // Redirect /admin to /admin/dashboard

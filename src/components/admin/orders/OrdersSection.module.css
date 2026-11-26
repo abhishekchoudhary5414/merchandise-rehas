@@ -445,3 +445,505 @@
     justify-content: center;
   }
 }
+
+/* Action Buttons Group */
+.actionsGroup {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.iconActionBtn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid rgba(86, 0, 103, 0.16);
+  background: #FAF7FB;
+  color: var(--primary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.iconActionBtn:hover {
+  background: var(--primary);
+  color: #FFFFFF;
+  border-color: var(--primary);
+  transform: translateY(-1px);
+}
+
+.receiptActionBtn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid rgba(216, 184, 120, 0.55);
+  background: #FFFBEB;
+  color: #92400E;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.receiptActionBtn:hover {
+  background: #D97706;
+  color: #FFFFFF;
+  border-color: #D97706;
+  transform: translateY(-1px);
+}
+
+/* Modals */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(24, 6, 30, 0.55);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 1200;
+}
+
+.modalCard {
+  width: 100%;
+  max-width: 720px;
+  max-height: 90vh;
+  background: #FFFFFF;
+  border-radius: 18px;
+  border: 1px solid rgba(86, 0, 103, 0.14);
+  box-shadow: 0 24px 60px rgba(32, 0, 40, 0.25);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.modalHeader {
+  padding: 18px 24px;
+  background: linear-gradient(135deg, #FAF5FC 0%, #FFFFFF 100%);
+  border-bottom: 1px solid rgba(86, 0, 103, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.modalTitleWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.modalTitle {
+  font-family: var(--font-serif);
+  font-size: 19px;
+  font-weight: 800;
+  color: var(--primary);
+  margin: 0;
+}
+
+.modalSubtitle {
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.modalCloseBtn {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid rgba(86, 0, 103, 0.15);
+  background: #FFFFFF;
+  color: var(--text-secondary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.modalCloseBtn:hover {
+  background: #FEF2F2;
+  color: #DC2626;
+  border-color: #FECACA;
+}
+
+.modalBody {
+  padding: 22px 24px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.modalSectionTitle {
+  font-size: 11.5px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.9px;
+  color: var(--primary);
+  margin: 0 0 10px 0;
+}
+
+.purchasedList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.purchasedItemCard {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 14px;
+  background: #FAF7FB;
+  border: 1px solid rgba(86, 0, 103, 0.1);
+  border-radius: 12px;
+}
+
+.purchasedThumb {
+  width: 56px;
+  height: 56px;
+  border-radius: 10px;
+  object-fit: cover;
+  border: 1px solid rgba(86, 0, 103, 0.12);
+  background: #FFFFFF;
+  flex-shrink: 0;
+}
+
+.purchasedInfo {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.purchasedName {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.purchasedMeta {
+  font-size: 12px;
+  color: var(--text-secondary);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.purchasedPriceCol {
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.purchasedLineTotal {
+  font-size: 14.5px;
+  font-weight: 800;
+  color: var(--primary);
+}
+
+.purchasedUnitCalc {
+  font-size: 11.5px;
+  color: var(--text-secondary);
+}
+
+.detailGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+@media (max-width: 640px) {
+  .detailGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.detailBox {
+  padding: 14px 16px;
+  background: #FFFFFF;
+  border: 1px solid rgba(86, 0, 103, 0.1);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12.5px;
+  color: var(--text-secondary);
+}
+
+.detailBox strong {
+  color: var(--text-primary);
+}
+
+.summaryRowLine {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12.5px;
+}
+
+.summaryTotalLine {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 8px;
+  margin-top: 4px;
+  border-top: 1px dashed rgba(86, 0, 103, 0.2);
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--primary);
+}
+
+/* Printable Parcel Shipping Label / Receipt */
+.labelSheet {
+  border: 2px solid #111827;
+  border-radius: 10px;
+  background: #FFFFFF;
+  color: #111827;
+  overflow: hidden;
+}
+
+.labelTopBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 18px;
+  border-bottom: 2px solid #111827;
+  background: #F9FAFB;
+  gap: 12px;
+}
+
+.labelBrandBlock {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.labelLogo {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  object-fit: contain;
+  border: 1px solid #D1D5DB;
+  background: #FFFFFF;
+}
+
+.labelBrandName {
+  font-family: var(--font-serif);
+  font-size: 16px;
+  font-weight: 800;
+  color: #111827;
+  line-height: 1.1;
+}
+
+.labelBrandSub {
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: #4B5563;
+  font-weight: 700;
+}
+
+.labelOrderMeta {
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.labelOrderNum {
+  font-family: monospace;
+  font-size: 13px;
+  font-weight: 800;
+  color: #111827;
+}
+
+.labelPayBadge {
+  display: inline-block;
+  padding: 3px 9px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  border: 1.5px solid #111827;
+  background: #111827;
+  color: #FFFFFF;
+}
+
+.labelAddressGrid {
+  display: grid;
+  grid-template-columns: 1.25fr 1fr;
+  border-bottom: 2px solid #111827;
+}
+
+@media (max-width: 600px) {
+  .labelAddressGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.labelToBlock {
+  padding: 16px 18px;
+  border-right: 2px solid #111827;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+@media (max-width: 600px) {
+  .labelToBlock {
+    border-right: none;
+    border-bottom: 2px solid #111827;
+  }
+}
+
+.labelFromBlock {
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: #FAFAFA;
+}
+
+.labelBlockTag {
+  font-size: 10.5px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #4B5563;
+  margin-bottom: 2px;
+}
+
+.labelRecipientName {
+  font-size: 16px;
+  font-weight: 800;
+  color: #111827;
+}
+
+.labelAddressText {
+  font-size: 13px;
+  line-height: 1.45;
+  color: #1F2937;
+}
+
+.labelPinCode {
+  font-size: 14px;
+  font-weight: 800;
+  color: #111827;
+  margin-top: 2px;
+}
+
+.labelFromText {
+  font-size: 12px;
+  line-height: 1.45;
+  color: #374151;
+}
+
+.labelItemsSection {
+  padding: 14px 18px;
+}
+
+.labelItemsTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.labelItemsTable th {
+  text-align: left;
+  padding: 6px 4px;
+  border-bottom: 1.5px solid #D1D5DB;
+  font-size: 10.5px;
+  text-transform: uppercase;
+  color: #4B5563;
+}
+
+.labelItemsTable td {
+  padding: 7px 4px;
+  border-bottom: 1px solid #E5E7EB;
+  color: #111827;
+}
+
+.labelItemsTable th:last-child,
+.labelItemsTable td:last-child {
+  text-align: right;
+}
+
+.labelFooter {
+  padding: 10px 18px;
+  background: #F9FAFB;
+  border-top: 1.5px dashed #9CA3AF;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: #374151;
+}
+
+.modalFooter {
+  padding: 14px 24px;
+  background: #FAF7FB;
+  border-top: 1px solid rgba(86, 0, 103, 0.1);
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.printBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: linear-gradient(135deg, var(--primary) 0%, #700086 100%);
+  color: #FFFFFF;
+  border: none;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(86, 0, 103, 0.2);
+}
+
+.printBtn:hover {
+  background: linear-gradient(135deg, #440052 0%, #5B006D 100%);
+}
+
+.secondaryBtn {
+  padding: 10px 18px;
+  background: #FFFFFF;
+  color: var(--text-primary);
+  border: 1px solid rgba(86, 0, 103, 0.18);
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+@media print {
+  :global(body *) {
+    visibility: hidden;
+  }
+  :global(#printable-parcel-label),
+  :global(#printable-parcel-label *) {
+    visibility: visible;
+  }
+  :global(#printable-parcel-label) {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100%;
+    border: 2px solid #000000;
+    box-shadow: none;
+  }
+}

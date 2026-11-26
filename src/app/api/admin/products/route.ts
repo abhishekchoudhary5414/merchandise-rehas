@@ -106,15 +106,12 @@ export async function POST(req: Request) {
 
     let targetCategoryId = categoryId;
     if (!targetCategoryId) {
-      let firstCat = await prisma.category.findFirst();
+      const firstCat = await prisma.category.findFirst();
       if (!firstCat) {
-        firstCat = await prisma.category.create({
-          data: {
-            name: 'Astrology & Navgraha',
-            slug: 'astrology-navgraha',
-            description: 'Sacred energized astrology crystal bracelets',
-          },
-        });
+        return NextResponse.json(
+          { error: 'Please create a category first before adding a product.' },
+          { status: 400 }
+        );
       }
       targetCategoryId = firstCat.id;
     }

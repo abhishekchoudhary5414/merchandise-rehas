@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { computeUnitPrice } from '@/lib/cart-pricing';
 
 export async function POST(req: Request) {
   try {
@@ -9,8 +10,8 @@ export async function POST(req: Request) {
     }
 
     const productIdsOrSlugs = items
-      .map((it: any) => it.productId || it.id || it.slug)
-      .filter(Boolean);
+      .map((it: { productId?: string; id?: string; slug?: string }) => it.productId || it.id || it.slug)
+      .filter((v): v is string => Boolean(v));
 
     const products = await prisma.product.findMany({
       where: {
@@ -36,31 +37,22 @@ export async function POST(req: Request) {
       },
     });
 
-    const productMap = new Map<string, any>();
+    const productMap = new Map<string, (typeof products)[number]>();
     for (const p of products) {
       productMap.set(p.id, p);
       productMap.set(p.slug, p);
     }
 
-    const validatedItems = items.map((item: any) => {
-      const p = productMap.get(item.productId) || productMap.get(item.id) || productMap.get(item.slug);
+    const validatedItems = items.map((item: { productId?: string; id?: string; slug?: string; tier?: string; ritual?: boolean; image?: string }) => {
+      const p =
+        (item.productId ? productMap.get(item.productId) : undefined) ||
+        (item.id ? productMap.get(item.id) : undefined) ||
+        (item.slug ? productMap.get(item.slug) : undefined);
       if (!p) {
         return item; // Keep as-is if not found
       }
 
-      // Calculate tier price
-      const tier = (item.tier || 'root').toLowerCase();
-      let basePrice = p.price;
-      if (tier === 'aura' && p.auraPrice != null) {
-        basePrice = p.auraPrice;
-      } else if (tier === 'divine' && p.divinePrice != null) {
-        basePrice = p.divinePrice;
-      } else if (p.rootPrice != null) {
-        basePrice = p.rootPrice;
-      }
-
-      const ritualAddon = item.ritual ? (p.energyRitualPrice || 150) : 0;
-      const unitPrice = basePrice + ritualAddon;
+      const unitPrice = computeUnitPrice(p, item.tier, Boolean(item.ritual));
 
       return {
         ...item,
@@ -76,7 +68,7 @@ export async function POST(req: Request) {
     });
 
     return NextResponse.json({ items: validatedItems });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('Error validating cart items:', err);
     return NextResponse.json({ error: 'Failed to validate cart' }, { status: 500 });
   }

@@ -20,6 +20,7 @@ import {
   X,
 } from 'lucide-react';
 import { formatINR, isValidIndianPinCode } from '@/lib/india-localization';
+import { addToCart, isInWishlist, toggleWishlistItem } from '@/lib/store-sync';
 import BreadcrumbNav from '@/components/common/BreadcrumbNav';
 import NoRefundPolicy from '@/components/products/NoRefundPolicy';
 import ProductReviewsSection from '@/components/products/ProductReviewsSection';
@@ -122,81 +123,45 @@ export default function ProductDetailClient({
   const [lightboxOpen, setLightboxOpen] = useState(false);
 
   useEffect(() => {
-    try {
-      const saved = JSON.parse(localStorage.getItem('rehas_wishlist') || '[]');
-      if (Array.isArray(saved) && saved.some((item: any) => item.id === product.id)) {
-        setWishlisted(true);
-      }
-    } catch {
-      // Ignore storage errors
-    }
-  }, [product.id]);
+    const syncWishlist = () => {
+      setWishlisted(isInWishlist(product.id) || isInWishlist(product.slug));
+    };
+    syncWishlist();
+    window.addEventListener('rehas_wishlist_updated', syncWishlist);
+    window.addEventListener('storage', syncWishlist);
+    return () => {
+      window.removeEventListener('rehas_wishlist_updated', syncWishlist);
+      window.removeEventListener('storage', syncWishlist);
+    };
+  }, [product.id, product.slug]);
 
   function handleAddToCart() {
-    try {
-      const existing = JSON.parse(localStorage.getItem('rehas_cart') || '[]');
-      const cartItem = {
-        productId: product.id,
-        name: product.name,
-        slug: product.slug,
-        image: activeMedia?.url || product.primaryImage,
-        tier: selectedTier,
-        ritual: includeRitual,
-        wristSize: selectedSize,
-        unitPrice: finalUnitPrice,
-        quantity,
-      };
-      const matchIdx = existing.findIndex(
-        (c: any) =>
-          c.productId === cartItem.productId &&
-          c.tier === cartItem.tier &&
-          c.ritual === cartItem.ritual &&
-          c.wristSize === cartItem.wristSize
-      );
-      if (matchIdx >= 0) {
-        existing[matchIdx].quantity += quantity;
-      } else {
-        existing.push(cartItem);
-      }
-      localStorage.setItem('rehas_cart', JSON.stringify(existing));
-      window.dispatchEvent(new Event('rehas_cart_updated'));
-      setActionFeedback(`Added ${quantity} × ${product.name} to your Cart!`);
-      setTimeout(() => setActionFeedback(null), 3500);
-    } catch {
-      setActionFeedback('Added to Cart!');
-    }
+    addToCart({
+      productId: product.id,
+      name: product.name,
+      slug: product.slug,
+      image: activeMedia?.url || product.primaryImage,
+      tier: selectedTier,
+      ritual: includeRitual,
+      wristSize: selectedSize,
+      unitPrice: finalUnitPrice,
+      quantity,
+    });
+    setActionFeedback(`Added ${quantity} × ${product.name} to your Cart!`);
+    setTimeout(() => setActionFeedback(null), 3500);
   }
 
   function handleToggleWishlist() {
-    try {
-      const existing = JSON.parse(localStorage.getItem('rehas_wishlist') || '[]');
-      const exists = existing.some((item: any) => item.id === product.id);
-      let updated: any[];
-      if (exists) {
-        updated = existing.filter((item: any) => item.id !== product.id);
-        setWishlisted(false);
-        setActionFeedback('Removed from Wishlist.');
-      } else {
-        updated = [
-          ...existing,
-          {
-            id: product.id,
-            name: product.name,
-            slug: product.slug,
-            price: activeTierPrice,
-            image: activeMedia?.url || product.primaryImage,
-          },
-        ];
-        setWishlisted(true);
-        setActionFeedback('Saved to your Wishlist!');
-      }
-      localStorage.setItem('rehas_wishlist', JSON.stringify(updated));
-      window.dispatchEvent(new Event('rehas_wishlist_updated'));
-      window.dispatchEvent(new Event('storage'));
-      setTimeout(() => setActionFeedback(null), 3500);
-    } catch {
-      setWishlisted(!wishlisted);
-    }
+    const { wishlisted: nextState } = toggleWishlistItem({
+      id: product.id,
+      name: product.name,
+      slug: product.slug,
+      price: activeTierPrice,
+      image: activeMedia?.url || product.primaryImage,
+    });
+    setWishlisted(nextState);
+    setActionFeedback(nextState ? 'Saved to your Wishlist!' : 'Removed from Wishlist.');
+    setTimeout(() => setActionFeedback(null), 3500);
   }
 
   const activeMedia = mediaItems[selectedMediaIdx] || mediaItems[0];

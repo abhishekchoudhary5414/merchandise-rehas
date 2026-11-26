@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Script from 'next/script';
+import StoreSync from '@/components/common/StoreSync';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -35,7 +36,10 @@ export default function RootLayout({
           strategy="lazyOnload"
         />
       </head>
-      <body>{children}</body>
+      <body>
+        <StoreSync />
+        {children}
+      </body>
     </html>
   );
 }

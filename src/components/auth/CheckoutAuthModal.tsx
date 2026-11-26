@@ -13,6 +13,7 @@ import {
   ArrowRight,
   Tag,
 } from 'lucide-react';
+import { mergeLocalStoreWithServer } from '@/lib/store-sync';
 import styles from './CheckoutAuthModal.module.css';
 
 export interface CouponOffer {
@@ -96,6 +97,7 @@ export default function CheckoutAuthModal({
         sessionStorage.setItem('rehas_auto_coupon', appliedCoupon);
       }
 
+      await mergeLocalStoreWithServer();
       onSuccess(data.user, appliedCoupon);
     } catch (err: any) {
       setError(err.message || 'Authentication failed');

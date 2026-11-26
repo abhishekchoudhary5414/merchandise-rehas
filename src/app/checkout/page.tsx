@@ -25,6 +25,7 @@ import {
   isValidIndianPinCode,
   calculateShippingAndTax,
 } from '@/lib/india-localization';
+import { clearCart } from '@/lib/store-sync';
 import styles from './CheckoutPage.module.css';
 
 interface CheckoutItem {
@@ -297,8 +298,7 @@ function CheckoutContent() {
     try {
       localStorage.removeItem('rehas_checkout_session');
       if (source === 'cart') {
-        localStorage.removeItem('rehas_cart');
-        window.dispatchEvent(new Event('rehas_cart_updated'));
+        clearCart(true);
       }
     } catch {
       // Ignore
