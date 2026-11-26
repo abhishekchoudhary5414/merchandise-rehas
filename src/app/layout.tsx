@@ -47,28 +47,23 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const googleVerification = process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION;
-
   return (
     <html lang="en-IN">
       <head>
-        {googleVerification && (
-          <meta name="google-site-verification" content={googleVerification} />
-        )}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
           href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap"
           rel="stylesheet"
         />
-        <Script
-          src="https://checkout.razorpay.com/v1/checkout.js"
-          strategy="lazyOnload"
-        />
       </head>
       <body>
         <StoreSync />
         {children}
+        <Script
+          src="https://checkout.razorpay.com/v1/checkout.js"
+          strategy="lazyOnload"
+        />
       </body>
     </html>
   );

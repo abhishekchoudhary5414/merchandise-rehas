@@ -1,4 +1,5 @@
 import React from 'react';
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
 import HeaderStickyGroup from '@/components/layout/HeaderStickyGroup';
@@ -16,7 +17,42 @@ import Newsletter from '@/components/newsletter/Newsletter';
 import ContactSection from '@/components/contact/ContactSection';
 import Footer from '@/components/footer/Footer';
 import WhatsAppFloat from '@/components/whatsapp/WhatsAppFloat';
-import { generateOrganizationJsonLd } from '@/lib/seo-helpers';
+import { generateOrganizationJsonLd, SITE_NAME, SITE_URL } from '@/lib/seo-helpers';
+
+export const metadata: Metadata = {
+  title: 'REHAS | Vedic Astrology & Crystal Energy Bracelets',
+  description:
+    'Consecrated natural crystal bracelets tuned to your Kundli & Mulank. Certified gemstones with pan-India delivery.',
+  alternates: {
+    canonical: SITE_URL,
+  },
+  openGraph: {
+    title: 'REHAS | Vedic Astrology & Crystal Energy Bracelets',
+    description:
+      'Consecrated natural crystal bracelets tuned to your Kundli & Mulank. Certified gemstones with pan-India delivery.',
+    url: SITE_URL,
+    siteName: SITE_NAME,
+    locale: 'en_IN',
+    type: 'website',
+    images: [
+      {
+        url: `${SITE_URL}/og-image.png`,
+        secureUrl: `${SITE_URL}/og-image.png`,
+        width: 1200,
+        height: 630,
+        type: 'image/png',
+        alt: 'REHAS | Vedic Astrology & Crystal Energy Bracelets',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'REHAS | Vedic Astrology & Crystal Energy Bracelets',
+    description:
+      'Consecrated natural crystal bracelets tuned to your Kundli & Mulank. Certified gemstones with pan-India delivery.',
+    images: [`${SITE_URL}/og-image.png`],
+  },
+};
 
 export const revalidate = 60; // Cache and ISR revalidate every 60 seconds for instant response
 
