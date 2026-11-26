@@ -1,0 +1,142 @@
+.pageWrap {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--background);
+}
+
+.main {
+  flex: 1;
+}
+
+.heroBanner {
+  background: linear-gradient(135deg, #560067 0%, #390044 65%, #24002C 100%);
+  color: #ffffff;
+  padding: 44px 24px 56px;
+  position: relative;
+  overflow: hidden;
+  border-bottom: 2px solid rgba(216, 184, 120, 0.35);
+}
+
+.heroBanner::before {
+  content: '';
+  position: absolute;
+  top: -80px;
+  right: -60px;
+  width: 320px;
+  height: 320px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(216, 184, 120, 0.18) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.heroInner {
+  max-width: var(--container-width);
+  margin: 0 auto;
+  position: relative;
+  z-index: 2;
+}
+
+.breadcrumbWrap {
+  margin-bottom: 20px;
+}
+
+.heroBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 14px;
+  border-radius: 999px;
+  background: rgba(216, 184, 120, 0.16);
+  border: 1px solid rgba(216, 184, 120, 0.45);
+  color: var(--secondary);
+  font-size: 11.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.4px;
+  margin-bottom: 14px;
+}
+
+.heroTitle {
+  font-family: var(--font-serif);
+  font-size: 40px;
+  font-weight: 800;
+  color: #ffffff;
+  margin: 0 0 10px;
+  line-height: 1.2;
+}
+
+.heroSubtitle {
+  font-size: 15px;
+  color: rgba(255, 255, 255, 0.86);
+  max-width: 680px;
+  margin: 0;
+  line-height: 1.6;
+}
+
+.quickStrip {
+  max-width: var(--container-width);
+  margin: -28px auto 0;
+  padding: 0 24px;
+  position: relative;
+  z-index: 5;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+}
+
+.quickCard {
+  background: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  text-decoration: none;
+  color: inherit;
+  box-shadow: 0 10px 28px rgba(86, 0, 103, 0.08);
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.quickCard:hover {
+  transform: translateY(-3px);
+  border-color: var(--primary);
+}
+
+.quickIcon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: #FAF5FC;
+  border: 1px solid rgba(216, 184, 120, 0.45);
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.quickTitle {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--primary);
+  margin: 0 0 2px;
+}
+
+.quickDesc {
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+@media (max-width: 900px) {
+  .quickStrip {
+    grid-template-columns: 1fr;
+    margin-top: 24px;
+    padding: 0 16px;
+  }
+  .heroTitle {
+    font-size: 30px;
+  }
+}

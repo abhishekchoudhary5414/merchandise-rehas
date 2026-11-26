@@ -186,7 +186,7 @@ export default function Navbar({ cartCount = 0 }: NavbarProps) {
           >
             Blogs
           </Link>
-          <Link href="/#contact" className={styles.navLink}>Contact</Link>
+          <Link href="/contact" className={styles.navLink}>Contact</Link>
         </nav>
 
         {/* Action Icons */}
@@ -470,7 +470,7 @@ export default function Navbar({ cartCount = 0 }: NavbarProps) {
               <span>Blogs</span>
               <ChevronRightIcon style={{ fontSize: 18 }} className={styles.drawerNavChevron} />
             </Link>
-            <Link href="/#contact" onClick={() => setMobileMenuOpen(false)} className={styles.drawerNavLink}>
+            <Link href="/contact" onClick={() => setMobileMenuOpen(false)} className={styles.drawerNavLink}>
               <span>Contact</span>
               <ChevronRightIcon style={{ fontSize: 18 }} className={styles.drawerNavChevron} />
             </Link>

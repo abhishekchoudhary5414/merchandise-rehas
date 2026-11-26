@@ -1,7 +1,17 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Send, CheckCircle, AlertCircle, Phone, Mail, MapPin, Clock } from 'lucide-react';
+import {
+  Send,
+  CheckCircle,
+  AlertCircle,
+  Phone,
+  Mail,
+  MapPin,
+  Clock,
+  Sparkles,
+  MessageCircle,
+} from 'lucide-react';
 import siteConfig from '@/data/site-config.json';
 import styles from './ContactSection.module.css';
 
@@ -29,7 +39,13 @@ export default function ContactSection() {
 
       if (res.ok) {
         setStatus('success');
-        setFormData({ name: '', email: '', phone: '', subject: 'Astrology Bracelet Consultation', message: '' });
+        setFormData({
+          name: '',
+          email: '',
+          phone: '',
+          subject: 'Astrology Bracelet Consultation',
+          message: '',
+        });
       } else {
         setStatus('error');
       }
@@ -42,45 +58,77 @@ export default function ContactSection() {
     <section id="contact" className={styles.section}>
       <div className={styles.container}>
         <div className={styles.infoCol}>
-          <span className={styles.subtitle}>Direct Consultation</span>
-          <h2 className={styles.title}>Speak with Our Vedic Guidance Team</h2>
-          <p className={styles.desc}>
-            Unsure which crystal bracelet resonates with your birth chart or Mulank? Send us your query or birth details for personalized recommendation.
-          </p>
+          <div className={styles.infoTop}>
+            <span className={styles.subtitle}>
+              <Sparkles size={13} /> Direct Consultation
+            </span>
+            <h2 className={styles.title}>Speak with Our Vedic Guidance Team</h2>
+            <p className={styles.desc}>
+              Unsure which crystal bracelet resonates with your birth chart or Mulank? Send us your query or birth details for a personalized recommendation.
+            </p>
 
-          <div className={styles.contactItems}>
-            <div className={styles.item}>
-              <div className={styles.iconWrap}><Mail size={18} /></div>
-              <div>
-                <strong>Email Address</strong>
-                <p>{siteConfig.contact.email}</p>
+            <div className={styles.contactItems}>
+              <a href={`mailto:${siteConfig.contact.email}`} className={styles.item}>
+                <div className={styles.iconWrap}>
+                  <Mail size={18} />
+                </div>
+                <div>
+                  <strong>Email Address</strong>
+                  <p>{siteConfig.contact.email}</p>
+                </div>
+              </a>
+
+              <a href={`tel:${siteConfig.contact.rawPhone}`} className={styles.item}>
+                <div className={styles.iconWrap}>
+                  <Phone size={18} />
+                </div>
+                <div>
+                  <strong>WhatsApp &amp; Call</strong>
+                  <p>{siteConfig.contact.phone}</p>
+                </div>
+              </a>
+
+              <div className={styles.item}>
+                <div className={styles.iconWrap}>
+                  <Clock size={18} />
+                </div>
+                <div>
+                  <strong>Consultation Hours</strong>
+                  <p>{siteConfig.contact.hours}</p>
+                </div>
               </div>
-            </div>
-            <div className={styles.item}>
-              <div className={styles.iconWrap}><Phone size={18} /></div>
-              <div>
-                <strong>WhatsApp & Call</strong>
-                <p>{siteConfig.contact.phone}</p>
-              </div>
-            </div>
-            <div className={styles.item}>
-              <div className={styles.iconWrap}><Clock size={18} /></div>
-              <div>
-                <strong>Consultation Hours</strong>
-                <p>{siteConfig.contact.hours}</p>
-              </div>
-            </div>
-            <div className={styles.item}>
-              <div className={styles.iconWrap}><MapPin size={18} /></div>
-              <div>
-                <strong>Sacred Atelier</strong>
-                <p>{siteConfig.contact.address.fullAddress}</p>
+
+              <div className={styles.item}>
+                <div className={styles.iconWrap}>
+                  <MapPin size={18} />
+                </div>
+                <div>
+                  <strong>Sacred Atelier</strong>
+                  <p>{siteConfig.contact.address.fullAddress}</p>
+                </div>
               </div>
             </div>
           </div>
+
+          <a
+            href={siteConfig.socials.whatsapp}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={styles.whatsappCta}
+          >
+            <MessageCircle size={17} />
+            <span>Chat Instantly on WhatsApp</span>
+          </a>
         </div>
 
         <div className={styles.formCol}>
+          <div className={styles.formHeader}>
+            <h3 className={styles.formHeading}>Send a Sacred Inquiry</h3>
+            <p className={styles.formSubheading}>
+              Our Acharyas &amp; patron support team respond within 24 hours.
+            </p>
+          </div>
+
           <form onSubmit={handleSubmit} className={styles.form}>
             {status === 'success' && (
               <div className={styles.alertSuccess}>
@@ -135,9 +183,9 @@ export default function ContactSection() {
                   onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
                 >
                   <option value="Astrology Bracelet Consultation">Astrology Bracelet Consultation</option>
-                  <option value="Order Tracking & Shipping">Order Tracking & Shipping</option>
+                  <option value="Order Tracking & Shipping">Order Tracking &amp; Shipping</option>
                   <option value="Custom Energization Request">Custom Energization Request</option>
-                  <option value="Wholesale & Bulk Inquiries">Wholesale & Bulk Inquiries</option>
+                  <option value="Wholesale & Bulk Inquiries">Wholesale &amp; Bulk Inquiries</option>
                 </select>
               </div>
             </div>
@@ -154,7 +202,8 @@ export default function ContactSection() {
             </div>
 
             <button type="submit" disabled={status === 'loading'} className={styles.submitBtn}>
-              {status === 'loading' ? 'Submitting...' : 'Send Sacred Message'} <Send size={16} />
+              <span>{status === 'loading' ? 'Submitting...' : 'Send Sacred Message'}</span>
+              <Send size={16} />
             </button>
           </form>
         </div>
