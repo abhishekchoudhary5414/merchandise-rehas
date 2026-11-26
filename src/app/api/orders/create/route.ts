@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getRazorpayClient } from '@/lib/razorpay';
 import { calculateShippingAndTax, isValidIndianMobile, isValidIndianPinCode } from '@/lib/india-localization';
+import { computeUnitPrice } from '@/lib/cart-pricing';
 import { sendOrderConfirmationEmail } from '@/lib/email';
 
 export async function POST(req: Request) {
@@ -69,18 +70,19 @@ export async function POST(req: Request) {
           { status: 400 }
         );
       }
-      const itemTotal = prod.price * item.quantity;
+      const unitPrice = computeUnitPrice(prod, item.tier, Boolean(item.ritual));
+      const itemTotal = unitPrice * item.quantity;
       subtotal += itemTotal;
       orderItemsData.push({
         productId: prod.id,
         quantity: item.quantity,
-        price: prod.price,
+        price: unitPrice,
         wristSize: item.wristSize || 'Medium (7.0 in)',
       });
       emailItems.push({
         name: prod.name,
         quantity: item.quantity,
-        price: prod.price,
+        price: unitPrice,
       });
     }
 

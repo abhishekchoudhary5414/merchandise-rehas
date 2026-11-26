@@ -385,6 +385,8 @@ function CheckoutContent() {
             productId: getItemId(it),
             quantity: Number(it.quantity) || 1,
             wristSize: it.wristSize || 'Free Size (Elastic)',
+            tier: it.tier || 'root',
+            ritual: Boolean(it.ritual),
           })),
         }),
       });
