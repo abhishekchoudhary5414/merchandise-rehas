@@ -1,8 +1,8 @@
 import { Metadata } from 'next';
 
-export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://merchandise.rehas.in';
 export const SITE_NAME = process.env.NEXT_PUBLIC_SITE_NAME || 'REHAS Sacred Merchandise';
-export const DEFAULT_OG_IMAGE = `${SITE_URL}/og-default.jpg`;
+export const DEFAULT_OG_IMAGE = `${SITE_URL}/og-image.png`;
 
 export function buildProductMetadata(product: any): Metadata {
   if (!product) {

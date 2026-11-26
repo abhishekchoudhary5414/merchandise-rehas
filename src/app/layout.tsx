@@ -1,12 +1,42 @@
 import type { Metadata } from 'next';
 import Script from 'next/script';
 import StoreSync from '@/components/common/StoreSync';
+import { SITE_NAME, SITE_URL } from '@/lib/seo-helpers';
 import './globals.css';
 
+const SITE_TITLE = 'REHAS Sacred Merchandise | Vedic Astrology & Crystal Energy Bracelets';
+const SITE_DESCRIPTION =
+  'Consecrated natural crystal bracelets tuned to your Kundli, Mulank, and Chakras. Free express doorstep delivery across India with 100% secured payments.';
+
 export const metadata: Metadata = {
-  title: 'REHAS Sacred Merchandise | Vedic Astrology & Crystal Energy Bracelets',
-  description: 'Consecrated natural crystal bracelets tuned to your Kundli, Mulank, and Chakras. Free express doorstep delivery across India with 100% secured payments.',
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'),
+  title: SITE_TITLE,
+  description: SITE_DESCRIPTION,
+  metadataBase: new URL(SITE_URL),
+  alternates: {
+    canonical: '/',
+  },
+  openGraph: {
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+    url: SITE_URL,
+    siteName: SITE_NAME,
+    locale: 'en_IN',
+    type: 'website',
+    images: [
+      {
+        url: '/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: SITE_TITLE,
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+    images: ['/og-image.png'],
+  },
   verification: {
     google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION || undefined,
   },
